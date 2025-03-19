@@ -1,4 +1,3 @@
-
 import React from 'react';
 import PeriodicTable from '../components/PeriodicTable';
 
@@ -11,8 +10,8 @@ const Index = () => {
             Interactive Periodic Table
           </h1>
           <p className="text-muted-foreground max-w-2xl mx-auto animate-slide-up">
-            Explore all 118 elements with detailed information. Click on any element to learn more, 
-            or use the search bar to find specific elements.
+            Explore all 118 elements with detailed information, polyatomic ions, and chemistry rules. 
+            Search or click on any element to learn more.
           </p>
         </div>
       </header>
@@ -23,7 +22,7 @@ const Index = () => {
       
       <footer className="py-6 border-t border-border">
         <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-          <p>A comprehensive reference of all known chemical elements.</p>
+          <p>A comprehensive chemistry reference for elements, polyatomic ions, and solubility rules.</p>
         </div>
       </footer>
     </div>

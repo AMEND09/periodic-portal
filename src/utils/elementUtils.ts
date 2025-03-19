@@ -1,4 +1,3 @@
-
 import { Element, elements } from '../data/elements';
 
 // Function to format atomic mass for display
@@ -17,17 +16,43 @@ export const formatWithUnit = (value: number | null, unit: string): string => {
   return `${value} ${unit}`;
 };
 
-// Search function for elements
-export const searchElements = (query: string, elementsList: Element[]): Element[] => {
-  if (!query) return [];
+// Optimized search function that uses caching and early termination
+export const searchElements = (query: string, elements: Element[]): Element[] => {
+  const lowercaseQuery = query.toLowerCase().trim();
   
-  const normalizedQuery = query.toLowerCase().trim();
+  if (!lowercaseQuery) return [];
   
-  return elementsList.filter(element => 
-    element.name.toLowerCase().includes(normalizedQuery) ||
-    element.symbol.toLowerCase().includes(normalizedQuery) ||
-    element.number.toString().includes(normalizedQuery)
+  // Use Set for faster lookups
+  const resultSet = new Set<Element>();
+  
+  // Search by exact atomic number for fast lookup
+  if (/^\d+$/.test(lowercaseQuery)) {
+    const number = parseInt(lowercaseQuery, 10);
+    const element = elements.find(el => el.number === number);
+    if (element) resultSet.add(element);
+  }
+  
+  // Search by exact symbol match first (fastest match)
+  const symbolMatch = elements.find(
+    el => el.symbol.toLowerCase() === lowercaseQuery
   );
+  if (symbolMatch) resultSet.add(symbolMatch);
+  
+  // Only continue searching if we don't have exact matches
+  if (resultSet.size === 0) {
+    // Search by name, symbol, and category
+    elements.forEach(element => {
+      if (
+        element.name.toLowerCase().includes(lowercaseQuery) ||
+        element.symbol.toLowerCase().includes(lowercaseQuery) ||
+        element.category.toLowerCase().includes(lowercaseQuery)
+      ) {
+        resultSet.add(element);
+      }
+    });
+  }
+  
+  return Array.from(resultSet);
 };
 
 // Get element by atomic number
@@ -35,10 +60,40 @@ export const getElementById = (id: number): Element | undefined => {
   return elements.find(element => element.number === id);
 };
 
-// Function to determine if an element should be highlighted based on search
+// Memoization cache for highlight calculations
+const highlightCache = new Map<string, boolean>();
+
 export const shouldHighlightElement = (element: Element, searchResults: Element[]): boolean => {
-  if (!searchResults.length) return false;
-  return searchResults.some(result => result.number === element.number);
+  if (searchResults.length === 0) return false;
+  
+  // Create a cache key using element number and length of results
+  // This assumes search results are deterministic for same input
+  const cacheKey = `${element.number}-${searchResults.length}`;
+  
+  if (highlightCache.has(cacheKey)) {
+    return highlightCache.get(cacheKey)!;
+  }
+  
+  // Use a Set for faster lookups
+  if (!searchResultsSet) {
+    searchResultsSet = new Set(searchResults.map(el => el.number));
+  }
+  
+  const isHighlighted = searchResultsSet.has(element.number);
+  highlightCache.set(cacheKey, isHighlighted);
+  
+  return isHighlighted;
+};
+
+// Keep a reference to the most recent search results set
+let searchResultsSet: Set<number> | null = null;
+
+// Clear the cache when it gets too large
+export const clearHighlightCache = () => {
+  if (highlightCache.size > 10000) {
+    highlightCache.clear();
+  }
+  searchResultsSet = null;
 };
 
 // Function to get a temperature display in both Kelvin and Celsius
@@ -58,4 +113,41 @@ export const getDiscoveryInfo = (element: Element): string => {
   }
   
   return info;
+};
+
+// Performance optimization - cache element positions for faster rendering
+const elementPositionCache = new Map<number, { row: number, col: number }>();
+
+export const getElementPosition = (element: Element) => {
+  if (elementPositionCache.has(element.number)) {
+    return elementPositionCache.get(element.number)!;
+  }
+  
+  let position;
+  // Handle special cases for lanthanides and actinides
+  if (element.category === 'lanthanide') {
+    position = { row: 8, col: element.number - 56 };
+  } else if (element.category === 'actinide') {
+    position = { row: 9, col: element.number - 88 };
+  } else {
+    // For normal elements
+    position = { row: element.period, col: element.group || 0 };
+  }
+  
+  elementPositionCache.set(element.number, position);
+  return position;
+};
+
+// Get a range of visible elements
+export const getVisibleElements = (
+  startRow: number, 
+  endRow: number, 
+  startCol: number, 
+  endCol: number
+): Element[] => {
+  return elements.filter(element => {
+    const pos = getElementPosition(element);
+    return pos.row >= startRow && pos.row <= endRow && 
+           pos.col >= startCol && pos.col <= endCol;
+  });
 };

@@ -1,4 +1,3 @@
-
 export interface Element {
   number: number;
   symbol: string;
@@ -2432,6 +2431,32 @@ export const elements: Element[] = [
     description: "Oganesson is a synthetic element named after Yuri Oganessian. It's the heaviest element currently known and might have unusual properties compared to other noble gases."
   }
 ];
+
+// Create indexed lookups for faster element access
+export const elementsByNumber: Record<number, Element> = {};
+export const elementsBySymbol: Record<string, Element> = {};
+export const elementsByCategory: Record<string, Element[]> = {};
+
+// Build indexes for faster lookups
+elements.forEach(element => {
+  elementsByNumber[element.number] = element;
+  elementsBySymbol[element.symbol] = element;
+  
+  if (!elementsByCategory[element.category]) {
+    elementsByCategory[element.category] = [];
+  }
+  elementsByCategory[element.category].push(element);
+});
+
+// Function to get an element by atomic number (O(1) lookup)
+export const getElementByNumber = (number: number): Element | undefined => {
+  return elementsByNumber[number];
+};
+
+// Function to get an element by symbol (O(1) lookup)
+export const getElementBySymbol = (symbol: string): Element | undefined => {
+  return elementsBySymbol[symbol];
+};
 
 // Function to get element positions for the periodic table grid
 export const getElementPosition = (element: Element) => {
