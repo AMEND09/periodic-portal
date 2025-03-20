@@ -3,6 +3,7 @@ import { Element, elements, getElementColor, isPlaceholder } from '../data/eleme
 import { PolyatomicIon } from '../data/polyatomicIons';
 import SearchBar from './SearchBar';
 import { searchElements, shouldHighlightElement } from '../utils/elementUtils';
+import MolarMassCalculator from './MolarMassCalculator';
 
 // Lazy load heavy components to improve initial load time
 const ElementCard = lazy(() => import('./ElementCard'));
@@ -47,6 +48,7 @@ const PeriodicTable: React.FC = () => {
   const [zoom, setZoom] = useState(1);
   const [isMobile, setIsMobile] = useState(false);
   const [isTableVisible, setIsTableVisible] = useState(true);
+  const [showMolarMassCalculator, setShowMolarMassCalculator] = useState(false);
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [visibleRange, setVisibleRange] = useState({ startRow: 0, endRow: 7, startCol: 0, endCol: 18 });
 
@@ -170,6 +172,16 @@ const PeriodicTable: React.FC = () => {
     setIsTableVisible(prev => !prev);
   }, []);
 
+  const toggleMolarMassCalculator = useCallback(() => {
+    setShowMolarMassCalculator(prev => !prev);
+    // If we're showing the calculator, we may want to hide other components
+    if (!showMolarMassCalculator) {
+      setSelectedElement(null);
+      setSelectedPolyatomicIon(null);
+      setShowSolubilityRules(false);
+    }
+  }, [showMolarMassCalculator]);
+
   // Memoize the main table structure to avoid recalculation
   // Using virtualization to only render visible elements
   const mainTableRows = useMemo(() => {
@@ -287,17 +299,25 @@ const PeriodicTable: React.FC = () => {
             Solubility Rules
           </button>
           
-          {isMobile && (
-            <button
-              onClick={toggleTableVisibility}
-              className="px-3 py-1 sm:px-4 sm:py-2 bg-secondary/20 hover:bg-secondary/30 rounded-md text-xs sm:text-sm font-medium flex items-center gap-1 sm:gap-2 transition-colors"
-            >
-              <span className="material-icons text-sm sm:text-base">
-                {isTableVisible ? 'visibility_off' : 'visibility'}
-              </span>
-              {isTableVisible ? 'Hide Table' : 'Show Table'}
-            </button>
-          )}
+          <button
+            onClick={toggleTableVisibility}
+            className="px-3 py-1 sm:px-4 sm:py-2 bg-secondary/20 hover:bg-secondary/30 rounded-md text-xs sm:text-sm font-medium flex items-center gap-1 sm:gap-2 transition-colors"
+          >
+            <span className="material-icons text-sm sm:text-base">
+              {isTableVisible ? 'visibility_off' : 'visibility'}
+            </span>
+            {isTableVisible ? 'Hide Table' : 'Show Table'}
+          </button>
+          
+          <button
+            onClick={toggleMolarMassCalculator}
+            className="px-3 py-1 sm:px-4 sm:py-2 bg-green-500/20 hover:bg-green-500/30 rounded-md text-xs sm:text-sm font-medium flex items-center gap-1 sm:gap-2 transition-colors"
+          >
+            <span className="material-icons text-sm sm:text-base">
+              calculate
+            </span>
+            Molar Mass Calculator
+          </button>
           
           <a 
             href="#" 
@@ -313,7 +333,13 @@ const PeriodicTable: React.FC = () => {
         </div>
       </div>
 
-      {(isTableVisible || !isMobile) && (
+      {showMolarMassCalculator && (
+        <div className="my-4">
+          <MolarMassCalculator />
+        </div>
+      )}
+
+      {isTableVisible && (
         <div 
           ref={tableContainerRef}
           className={`pinch-zoom-container ${isMobile ? 'mobile-table-container' : ''}`}
@@ -335,7 +361,7 @@ const PeriodicTable: React.FC = () => {
         </div>
       )}
 
-      {isMobile && isTableVisible && (
+      {isTableVisible && (
         <div className="zoom-controls">
           <button className="zoom-button" onClick={handleZoomIn}>+</button>
           <button className="zoom-button" onClick={handleZoomOut}>-</button>

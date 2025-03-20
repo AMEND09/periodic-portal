@@ -248,3 +248,40 @@
   -webkit-overflow-scrolling: touch;
   max-height: calc(100vh - 300px);
 }
+
+/* Molar Mass Calculator styles */
+.calculator-container {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.calculator-input {
+  font-family: 'Courier New', monospace;
+}
+
+.calculator-result {
+  font-size: 1.5rem;
+  font-weight: bold;
+  text-align: center;
+  margin: 1rem 0;
+}
+
+.calculator-breakdown {
+  font-size: 0.9rem;
+  border-spacing: 0;
+  width: 100%;
+}
+
+.calculator-breakdown th, 
+.calculator-breakdown td {
+  padding: 0.5rem;
+  text-align: left;
+}
+
+.calculator-breakdown th {
+  background-color: rgba(0, 0, 0, 0.05);
+  font-weight: 600;
+}
