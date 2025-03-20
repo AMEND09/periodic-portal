@@ -66,34 +66,28 @@ const highlightCache = new Map<string, boolean>();
 export const shouldHighlightElement = (element: Element, searchResults: Element[]): boolean => {
   if (searchResults.length === 0) return false;
   
-  // Create a cache key using element number and length of results
-  // This assumes search results are deterministic for same input
-  const cacheKey = `${element.number}-${searchResults.length}`;
+  // Create a more specific cache key using element number and a hash of the search results
+  // This ensures the cache is invalidated when search results change
+  const searchResultsKey = searchResults.map(el => el.number).sort().join(',');
+  const cacheKey = `${element.number}-${searchResultsKey}`;
   
   if (highlightCache.has(cacheKey)) {
     return highlightCache.get(cacheKey)!;
   }
   
-  // Use a Set for faster lookups
-  if (!searchResultsSet) {
-    searchResultsSet = new Set(searchResults.map(el => el.number));
-  }
+  // Instead of using a global searchResultsSet, create a new one for this invocation
+  const resultsSet = new Set(searchResults.map(el => el.number));
+  const isHighlighted = resultsSet.has(element.number);
   
-  const isHighlighted = searchResultsSet.has(element.number);
   highlightCache.set(cacheKey, isHighlighted);
-  
   return isHighlighted;
 };
 
-// Keep a reference to the most recent search results set
-let searchResultsSet: Set<number> | null = null;
-
-// Clear the cache when it gets too large
+// Clear the cache when it gets too large or explicitly requested
 export const clearHighlightCache = () => {
-  if (highlightCache.size > 10000) {
+  if (highlightCache.size > 1000) {  // Reduced threshold for more frequent clearing
     highlightCache.clear();
   }
-  searchResultsSet = null;
 };
 
 // Function to get a temperature display in both Kelvin and Celsius

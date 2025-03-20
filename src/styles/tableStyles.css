@@ -285,3 +285,50 @@
   background-color: rgba(0, 0, 0, 0.05);
   font-weight: 600;
 }
+
+/* Mass-mole converter styles */
+input[type=number]::-webkit-inner-spin-button, 
+input[type=number]::-webkit-outer-spin-button { 
+  -webkit-appearance: none; 
+  margin: 0; 
+}
+
+input[type=number] {
+  -moz-appearance: textfield;
+}
+
+.converter-section {
+  transition: all 0.3s ease;
+  max-height: 0;
+  overflow: hidden;
+}
+
+.converter-section.open {
+  max-height: 200px;
+}
+
+/* Equation balancer styles */
+.balanced-equation {
+  font-family: 'Courier New', monospace;
+  background-color: rgba(255, 255, 255, 0.05);
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  margin: 1rem 0;
+  overflow-x: auto;
+  text-align: center;
+}
+
+.equation-input {
+  font-family: 'Courier New', monospace;
+}
+
+.coefficient {
+  color: #2196f3;
+  font-weight: bold;
+}
+
+.reaction-arrow {
+  display: inline-block;
+  margin: 0 0.5rem;
+  color: #f59e0b;
+}
