@@ -6,6 +6,7 @@ import { searchElements, shouldHighlightElement } from '../utils/elementUtils';
 import MolarMassCalculator from './MolarMassCalculator';
 import EquationBalancer from './EquationBalancer';
 import ChemicalNamer from './ChemicalNamer';
+import Stoichiometry from './Stoichiometry';
 
 // Lazy load heavy components to improve initial load time
 const ElementCard = lazy(() => import('./ElementCard'));
@@ -53,6 +54,7 @@ const PeriodicTable: React.FC = () => {
   const [showMolarMassCalculator, setShowMolarMassCalculator] = useState(false);
   const [showEquationBalancer, setShowEquationBalancer] = useState(false);
   const [showChemicalNamer, setShowChemicalNamer] = useState(false);
+  const [showStoichiometry, setShowStoichiometry] = useState(false);
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [visibleRange, setVisibleRange] = useState({ startRow: 0, endRow: 7, startCol: 0, endCol: 18 });
 
@@ -199,6 +201,15 @@ const PeriodicTable: React.FC = () => {
       setShowEquationBalancer(false);
     }
   }, [showChemicalNamer]);
+
+  const toggleStoichiometry = useCallback(() => {
+    setShowStoichiometry(prev => !prev);
+    if (!showStoichiometry) {
+      setShowMolarMassCalculator(false);
+      setShowEquationBalancer(false);
+      setShowChemicalNamer(false);
+    }
+  }, [showStoichiometry, setShowMolarMassCalculator, setShowEquationBalancer, setShowChemicalNamer]);
 
   // Memoize the main table structure to avoid recalculation
   // Using virtualization to only render visible elements
@@ -353,6 +364,14 @@ const PeriodicTable: React.FC = () => {
             Chemical Namer
           </button>
           
+          <button
+            onClick={toggleStoichiometry}
+            className="px-3 py-1 sm:px-4 sm:py-2 bg-amber-500/20 hover:bg-amber-500/30 rounded-md text-xs sm:text-sm font-medium flex items-center gap-1 sm:gap-2 transition-colors"
+          >
+            <span className="material-icons text-sm sm:text-base">scale</span>
+            Stoichiometry
+          </button>
+          
           <a 
             href="#" 
             onClick={(e) => {
@@ -382,6 +401,12 @@ const PeriodicTable: React.FC = () => {
       {showChemicalNamer && (
         <div className="my-4">
           <ChemicalNamer />
+        </div>
+      )}
+
+      {showStoichiometry && (
+        <div className="my-4">
+          <Stoichiometry />
         </div>
       )}
 
