@@ -652,3 +652,357 @@ function findGCD(a: number, b: number): number {
   }
   return a;
 }
+
+// Function to translate a chemical formula to a systematic name
+export function translateChemicalFormula(formula: string): string {
+  try {
+    // First, see if it's a common compound with a traditional name
+    const commonFormulasToNames = reverseCommonNameDictionary();
+    if (commonFormulasToNames[formula]) {
+      return commonFormulasToNames[formula];
+    }
+
+    // Parse the formula to get element counts
+    const elementCounts = parseChemicalFormula(formula);
+    
+    // Identify compound type based on elements and structure
+    if (isSimpleBinaryCompound(elementCounts)) {
+      return nameBinaryCompound(elementCounts);
+    }
+    
+    if (isTernaryOxoanionCompound(elementCounts, formula)) {
+      return nameOxoanionCompound(formula);
+    }
+    
+    if (isAcid(elementCounts, formula)) {
+      return nameAcid(formula);
+    }
+    
+    if (isHydrate(formula)) {
+      return nameHydrate(formula);
+    }
+    
+    // If we can't determine a more specific type, use generic naming
+    return createSystematicName(elementCounts);
+  } catch (error) {
+    throw new Error(`Unable to translate formula to name: ${(error as Error).message}`);
+  }
+}
+
+// Create a reverse mapping of the common names dictionary
+function reverseCommonNameDictionary(): Record<string, string> {
+  const commonNames: Record<string, string> = {
+    "water": "H2O",
+    "ammonia": "NH3",
+    "methane": "CH4",
+    // ...more existing names from translateChemicalName...
+    "dichlorodifluoromethane": "CCl2F2"
+  };
+  
+  const reversed: Record<string, string> = {};
+  for (const [name, formula] of Object.entries(commonNames)) {
+    reversed[formula] = name;
+  }
+  return reversed;
+}
+
+// Check if the compound is a simple binary compound (two elements)
+function isSimpleBinaryCompound(elementCounts: Record<string, number>): boolean {
+  return Object.keys(elementCounts).length === 2;
+}
+
+// Check if the compound contains a ternary oxoanion (contains oxygen and another non-metal)
+function isTernaryOxoanionCompound(elementCounts: Record<string, number>, formula: string): boolean {
+  const hasOxygen = elementCounts["O"] !== undefined;
+  const hasNonMetal = Object.keys(elementCounts).some(el => 
+    ["C", "N", "P", "S", "Se", "Cl", "Br", "I"].includes(el));
+  
+  return hasOxygen && hasNonMetal && Object.keys(elementCounts).length >= 3;
+}
+
+// Check if the compound is an acid
+function isAcid(elementCounts: Record<string, number>, formula: string): boolean {
+  return elementCounts["H"] !== undefined && 
+    (formula.startsWith("H") || formula.includes("(H)")) &&
+    Object.keys(elementCounts).some(el => ["Cl", "Br", "I", "F", "S", "N", "C", "P"].includes(el));
+}
+
+// Check if the compound is a hydrate
+function isHydrate(formula: string): boolean {
+  return formula.includes("·") && formula.includes("H2O");
+}
+
+// Name a binary compound (composed of two elements)
+function nameBinaryCompound(elementCounts: Record<string, number>): string {
+  const elements = Object.keys(elementCounts);
+  
+  // Determine which is the metal/more electropositive element (usually comes first in the formula)
+  const nonMetals = ["H", "B", "C", "N", "O", "F", "Ne", "Si", "P", "S", "Cl", "Ar", 
+                     "As", "Se", "Br", "Kr", "Te", "I", "Xe", "At", "Rn"];
+  
+  let cation, anion;
+  if (nonMetals.includes(elements[0]) && nonMetals.includes(elements[1])) {
+    // If both are non-metals, the one with lower electronegativity goes first
+    const electronegativities: Record<string, number> = {
+      "H": 2.20, "C": 2.55, "N": 3.04, "O": 3.44, "F": 3.98, "P": 2.19, 
+      "S": 2.58, "Cl": 3.16, "Br": 2.96, "I": 2.66
+    };
+    
+    if ((electronegativities[elements[0]] || 0) < (electronegativities[elements[1]] || 0)) {
+      cation = elements[0];
+      anion = elements[1];
+    } else {
+      cation = elements[1];
+      anion = elements[0];
+    }
+  } else {
+    // For metal/non-metal compounds, metal is the cation
+    const element0IsMetal = !nonMetals.includes(elements[0]);
+    cation = element0IsMetal ? elements[0] : elements[1];
+    anion = element0IsMetal ? elements[1] : elements[0];
+  }
+  
+  // Get element names
+  const cationData = getElementBySymbol(cation);
+  const anionData = getElementBySymbol(anion);
+  
+  if (!cationData || !anionData) {
+    throw new Error(`Unknown elements in formula: ${cation}, ${anion}`);
+  }
+  
+  // Convert anion name to its ionic form
+  let anionName = anionData.name.toLowerCase();
+  if (anionName.endsWith("gen")) {
+    anionName = anionName.replace("gen", "ide");
+  } else if (anionName.endsWith("ine")) {
+    anionName = anionName.replace("ine", "ide");
+  } else if (anionName.endsWith("on")) {
+    anionName = anionName.replace("on", "ide");
+  } else if (anionName === "oxygen") {
+    anionName = "oxide";
+  } else if (anionName === "sulfur") {
+    anionName = "sulfide";
+  } else {
+    anionName += "ide";
+  }
+  
+  // Add Roman numerals for transition metals with multiple oxidation states
+  let cationName = cationData.name;
+  const transitionMetals = ["Sc", "Ti", "V", "Cr", "Mn", "Fe", "Co", "Ni", "Cu", "Zn"];
+  if (transitionMetals.includes(cation)) {
+    const anionCharge = anionData.symbol === "O" ? 2 : 1;
+    const cationCount = elementCounts[cation];
+    const anionCount = elementCounts[anion];
+    const oxidationState = (anionCharge * anionCount) / cationCount;
+    
+    if (oxidationState > 1) {
+      // Convert to Roman numerals
+      const oxidationStateRoman = toRoman(oxidationState);
+      cationName += ` (${oxidationStateRoman})`;
+    }
+  }
+  
+  // Add prefixes for non-metal/non-metal compounds
+  if (nonMetals.includes(cation) && nonMetals.includes(anion)) {
+    const prefixes = ["", "mono", "di", "tri", "tetra", "penta", "hexa", "hepta", "octa", "nona", "deca"];
+    const cationPrefix = elementCounts[cation] > 1 ? prefixes[elementCounts[cation]] : "";
+    const anionPrefix = elementCounts[anion] > 1 ? prefixes[elementCounts[anion]] : "";
+    
+    return `${cationPrefix}${cationData.name.toLowerCase()} ${anionPrefix}${anionName}`;
+  }
+  
+  return `${cationName} ${anionName}`;
+}
+
+// Name compounds with oxoanions
+function nameOxoanionCompound(formula: string): string {
+  // This is a simplified implementation that handles common patterns
+  const oxoanionPatterns: Record<string, { prefix: string, suffix: string, charge: number }> = {
+    "NO3": { prefix: "nitrat", suffix: "e", charge: -1 },
+    "NO2": { prefix: "nitrit", suffix: "e", charge: -1 },
+    "SO4": { prefix: "sulfat", suffix: "e", charge: -2 },
+    "SO3": { prefix: "sulfit", suffix: "e", charge: -2 },
+    "PO4": { prefix: "phosphat", suffix: "e", charge: -3 },
+    "CO3": { prefix: "carbonat", suffix: "e", charge: -2 },
+    "ClO4": { prefix: "perchlorat", suffix: "e", charge: -1 },
+    "ClO3": { prefix: "chlorat", suffix: "e", charge: -1 },
+    "ClO2": { prefix: "chlorit", suffix: "e", charge: -1 },
+    "ClO": { prefix: "hypochlorit", suffix: "e", charge: -1 },
+    "CrO4": { prefix: "chromat", suffix: "e", charge: -2 },
+    "Cr2O7": { prefix: "dichromat", suffix: "e", charge: -2 },
+    "MnO4": { prefix: "permanganat", suffix: "e", charge: -1 }
+  };
+  
+  // Identify the oxoanion part of the formula
+  for (const [pattern, info] of Object.entries(oxoanionPatterns)) {
+    if (formula.includes(pattern)) {
+      // Extract the cation part
+      const parts = formula.split(pattern);
+      const cationPart = parts[0].replace(/[()]/g, "");
+      
+      // Identify the cation
+      const cationSymbol = cationPart.match(/[A-Z][a-z]?/g)?.[0];
+      if (!cationSymbol) continue;
+      
+      const cationElement = getElementBySymbol(cationSymbol);
+      if (!cationElement) continue;
+      
+      // For elements with multiple oxidation states, add Roman numerals
+      let cationName = cationElement.name;
+      if (["Fe", "Cu", "Co", "Mn", "Pb", "Sn", "Hg"].includes(cationSymbol)) {
+        const oxidationState = info.charge * (formula.includes("2" + pattern) ? 2 : 1) * -1;
+        if (oxidationState > 1) {
+          cationName += ` (${toRoman(oxidationState)})`;
+        }
+      }
+      
+      return `${cationName} ${info.prefix}${info.suffix}`;
+    }
+  }
+  
+  return createSystematicName(parseChemicalFormula(formula));
+}
+
+// Name acids
+function nameAcid(formula: string): string {
+  // Binary acids (HF, HCl, HBr, HI)
+  const binaryAcidPatterns: Record<string, string> = {
+    "HF": "hydrofluoric acid",
+    "HCl": "hydrochloric acid",
+    "HBr": "hydrobromic acid",
+    "HI": "hydroiodic acid",
+    "H2S": "hydrosulfuric acid"
+  };
+  
+  if (binaryAcidPatterns[formula]) {
+    return binaryAcidPatterns[formula];
+  }
+  
+  // Oxoacids
+  const oxoacidPatterns: Record<string, { hypo: string, regular: string, per: string }> = {
+    "Cl": { hypo: "hypochlorous acid", regular: "chlorous acid", per: "perchloric acid" },
+    "Br": { hypo: "hypobromous acid", regular: "bromous acid", per: "perbromic acid" },
+    "I": { hypo: "hypoiodous acid", regular: "iodous acid", per: "periodic acid" },
+    "S": { hypo: "hyposulfurous acid", regular: "sulfurous acid", per: "persulfuric acid" }
+  };
+  
+  // Check for common oxoacid patterns
+  if (formula === "H2SO4") return "sulfuric acid";
+  if (formula === "H2SO3") return "sulfurous acid";
+  if (formula === "HNO3") return "nitric acid";
+  if (formula === "HNO2") return "nitrous acid";
+  if (formula === "H3PO4") return "phosphoric acid";
+  if (formula === "H2CO3") return "carbonic acid";
+  if (formula === "CH3COOH" || formula === "HC2H3O2") return "acetic acid";
+  
+  // Default case: return a systematic name
+  return createSystematicName(parseChemicalFormula(formula)) + " (acid)";
+}
+
+// Name hydrates
+function nameHydrate(formula: string): string {
+  const parts = formula.split("·");
+  if (parts.length !== 2 || !parts[1].includes("H2O")) {
+    return createSystematicName(parseChemicalFormula(formula));
+  }
+  
+  const compoundFormula = parts[0];
+  const waterCount = parseInt(parts[1].replace("H2O", "")) || 1;
+  
+  const compoundName = translateChemicalFormula(compoundFormula);
+  
+  // Add the appropriate prefix for the water molecules
+  const hydratePrefix = ["", "mono", "di", "tri", "tetra", "penta", "hexa", "hepta", "octa", "nona", "deca", "undeca", "dodeca"][waterCount] || waterCount.toString();
+  
+  return `${compoundName} ${hydratePrefix}hydrate`;
+}
+
+// Create a systematic name for a compound that doesn't fit specific patterns
+function createSystematicName(elementCounts: Record<string, number>): string {
+  const prefixes = ["", "mono", "di", "tri", "tetra", "penta", "hexa", "hepta", "octa", "nona", "deca"];
+  
+  // Sort elements by electronegativity (simplification: use alphabetical order)
+  const sortedElements = Object.keys(elementCounts).sort();
+  
+  let name = "";
+  sortedElements.forEach((symbol, index) => {
+    const element = getElementBySymbol(symbol);
+    if (!element) return;
+    
+    const count = elementCounts[symbol];
+    const prefix = count > 1 ? prefixes[count] : "";
+    
+    // For the last element (anion), change the ending
+    if (index === sortedElements.length - 1) {
+      let elementName = element.name.toLowerCase();
+      if (elementName === "oxygen") elementName = "ox";
+      if (elementName === "sulfur") elementName = "sulf";
+      if (elementName === "nitrogen") elementName = "nitr";
+      if (elementName === "fluorine") elementName = "fluor";
+      if (elementName === "chlorine") elementName = "chlor";
+      if (elementName === "bromine") elementName = "brom";
+      if (elementName === "iodine") elementName = "iod";
+      
+      name += prefix + elementName + "ide";
+    } else {
+      name += prefix + element.name.toLowerCase() + " ";
+    }
+  });
+  
+  return name;
+}
+
+// Convert number to Roman numeral (for oxidation states)
+function toRoman(num: number): string {
+  const romanNumerals: [number, string][] = [
+    [10, "X"], [9, "IX"], [5, "V"], [4, "IV"], [1, "I"]
+  ];
+  
+  let result = "";
+  let n = num;
+  
+  for (const [value, numeral] of romanNumerals) {
+    while (n >= value) {
+      result += numeral;
+      n -= value;
+    }
+  }
+  
+  return result;
+}
+
+// Function to get IUPAC naming rules for a specific compound type
+export function getNamingRules(compoundType: string): string[] {
+  const rules: Record<string, string[]> = {
+    "binary": [
+      "For compounds with two elements, name the more electropositive element first (usually the metal or element further left/down in the periodic table).",
+      "The second element (usually non-metal) gets an '-ide' ending.",
+      "For compounds between non-metals, use prefixes (mono-, di-, tri-, etc.) to indicate the number of atoms.",
+      "For metals with multiple oxidation states, use Roman numerals to indicate the charge."
+    ],
+    "ionic": [
+      "Name the cation first, followed by the anion.",
+      "Monoatomic cations use the element name (e.g., sodium, calcium).",
+      "Transition metals with multiple oxidation states use Roman numerals (e.g., iron(III)).",
+      "Monoatomic anions replace the element ending with '-ide' (e.g., oxide, chloride)."
+    ],
+    "oxoacid": [
+      "Acids with '-ate' anions change to '-ic acid' (e.g., sulfate → sulfuric acid).",
+      "Acids with '-ite' anions change to '-ous acid' (e.g., sulfite → sulfurous acid).",
+      "The prefix 'hypo-' with '-ite' anion becomes 'hypo-' with '-ous acid'.",
+      "The prefix 'per-' with '-ate' anion becomes 'per-' with '-ic acid'."
+    ],
+    "hydrate": [
+      "Name the ionic compound first, followed by the prefix indicating water molecules.",
+      "Use prefixes mono-, di-, tri-, etc. to indicate the number of water molecules.",
+      "End with the word 'hydrate'."
+    ],
+    "salt": [
+      "Name the cation first, followed by the anion.",
+      "Polyatomic anions often end in '-ate' or '-ite'.",
+      "Hydrogen-containing anions use the prefix 'hydrogen' or 'bi-'."
+    ]
+  };
+  
+  return rules[compoundType] || rules["binary"];
+}

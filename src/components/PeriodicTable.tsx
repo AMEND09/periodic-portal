@@ -5,6 +5,7 @@ import SearchBar from './SearchBar';
 import { searchElements, shouldHighlightElement } from '../utils/elementUtils';
 import MolarMassCalculator from './MolarMassCalculator';
 import EquationBalancer from './EquationBalancer';
+import ChemicalNamer from './ChemicalNamer';
 
 // Lazy load heavy components to improve initial load time
 const ElementCard = lazy(() => import('./ElementCard'));
@@ -51,6 +52,7 @@ const PeriodicTable: React.FC = () => {
   const [isTableVisible, setIsTableVisible] = useState(true);
   const [showMolarMassCalculator, setShowMolarMassCalculator] = useState(false);
   const [showEquationBalancer, setShowEquationBalancer] = useState(false);
+  const [showChemicalNamer, setShowChemicalNamer] = useState(false);
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [visibleRange, setVisibleRange] = useState({ startRow: 0, endRow: 7, startCol: 0, endCol: 18 });
 
@@ -178,6 +180,7 @@ const PeriodicTable: React.FC = () => {
     setShowMolarMassCalculator(prev => !prev);
     if (!showMolarMassCalculator) {
       setShowEquationBalancer(false);
+      setShowChemicalNamer(false);
     }
   }, [showMolarMassCalculator]);
 
@@ -185,8 +188,17 @@ const PeriodicTable: React.FC = () => {
     setShowEquationBalancer(prev => !prev);
     if (!showEquationBalancer) {
       setShowMolarMassCalculator(false);
+      setShowChemicalNamer(false);
     }
   }, [showEquationBalancer]);
+
+  const toggleChemicalNamer = useCallback(() => {
+    setShowChemicalNamer(prev => !prev);
+    if (!showChemicalNamer) {
+      setShowMolarMassCalculator(false);
+      setShowEquationBalancer(false);
+    }
+  }, [showChemicalNamer]);
 
   // Memoize the main table structure to avoid recalculation
   // Using virtualization to only render visible elements
@@ -333,6 +345,14 @@ const PeriodicTable: React.FC = () => {
             Balance Equations
           </button>
           
+          <button
+            onClick={toggleChemicalNamer}
+            className="px-3 py-1 sm:px-4 sm:py-2 bg-purple-500/20 hover:bg-purple-500/30 rounded-md text-xs sm:text-sm font-medium flex items-center gap-1 sm:gap-2 transition-colors"
+          >
+            <span className="material-icons text-sm sm:text-base">text_format</span>
+            Chemical Namer
+          </button>
+          
           <a 
             href="#" 
             onClick={(e) => {
@@ -356,6 +376,12 @@ const PeriodicTable: React.FC = () => {
       {showEquationBalancer && (
         <div className="my-4">
           <EquationBalancer />
+        </div>
+      )}
+
+      {showChemicalNamer && (
+        <div className="my-4">
+          <ChemicalNamer />
         </div>
       )}
 

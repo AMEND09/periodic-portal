@@ -211,6 +211,7 @@
   white-space: nowrap;
   word-wrap: normal;
   direction: ltr;
+  font-feature-settings: 'liga'; /* Add standard property */
   -webkit-font-feature-settings: 'liga';
   -webkit-font-smoothing: antialiased;
 }
@@ -294,17 +295,8 @@ input[type=number]::-webkit-outer-spin-button {
 }
 
 input[type=number] {
+  appearance: textfield; /* Add standard property */
   -moz-appearance: textfield;
-}
-
-.converter-section {
-  transition: all 0.3s ease;
-  max-height: 0;
-  overflow: hidden;
-}
-
-.converter-section.open {
-  max-height: 200px;
 }
 
 /* Equation balancer styles */
