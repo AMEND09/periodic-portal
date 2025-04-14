@@ -7,6 +7,9 @@ import MolarMassCalculator from './MolarMassCalculator';
 import EquationBalancer from './EquationBalancer';
 import ChemicalNamer from './ChemicalNamer';
 import Stoichiometry from './Stoichiometry';
+import GasLawCalculator from './GasLawCalculator';
+import ToolsMenu, { Tool } from './ToolsMenu';
+import ActiveToolTags from './ActiveToolTags';
 
 // Lazy load heavy components to improve initial load time
 const ElementCard = lazy(() => import('./ElementCard'));
@@ -51,12 +54,52 @@ const PeriodicTable: React.FC = () => {
   const [zoom, setZoom] = useState(1);
   const [isMobile, setIsMobile] = useState(false);
   const [isTableVisible, setIsTableVisible] = useState(true);
-  const [showMolarMassCalculator, setShowMolarMassCalculator] = useState(false);
-  const [showEquationBalancer, setShowEquationBalancer] = useState(false);
-  const [showChemicalNamer, setShowChemicalNamer] = useState(false);
-  const [showStoichiometry, setShowStoichiometry] = useState(false);
+  const [activeTools, setActiveTools] = useState<string[]>([]);
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [visibleRange, setVisibleRange] = useState({ startRow: 0, endRow: 7, startCol: 0, endCol: 18 });
+
+  const tools = useMemo<Tool[]>(() => [
+    {
+      id: 'MolarMassCalculator',
+      name: 'Molar Mass Calculator',
+      description: 'Calculate the molar mass of chemical compounds',
+      icon: 'calculate',
+      component: <MolarMassCalculator />,
+      color: 'bg-green-600'
+    },
+    {
+      id: 'EquationBalancer',
+      name: 'Equation Balancer',
+      description: 'Balance chemical equations automatically',
+      icon: 'balance',
+      component: <EquationBalancer />,
+      color: 'bg-blue-600'
+    },
+    {
+      id: 'ChemicalNamer',
+      name: 'Chemical Namer',
+      description: 'Convert between chemical names and formulas',
+      icon: 'text_format',
+      component: <ChemicalNamer />,
+      color: 'bg-purple-600'
+    },
+    {
+      id: 'Stoichiometry',
+      name: 'Stoichiometry Calculator',
+      description: 'Perform stoichiometric calculations',
+      icon: 'scale',
+      component: <Stoichiometry />,
+      color: 'bg-amber-600'
+    },
+    {
+      id: 'GasLawCalculator',
+      name: 'Gas Laws Calculator',
+      description: 'Calculate using various gas laws',
+      icon: 'gas_meter',
+      component: <GasLawCalculator />,
+      color: 'bg-cyan-600'
+    }
+  ], []);
 
   // Check if we're on mobile
   useEffect(() => {
@@ -178,38 +221,15 @@ const PeriodicTable: React.FC = () => {
     setIsTableVisible(prev => !prev);
   }, []);
 
-  const toggleMolarMassCalculator = useCallback(() => {
-    setShowMolarMassCalculator(prev => !prev);
-    if (!showMolarMassCalculator) {
-      setShowEquationBalancer(false);
-      setShowChemicalNamer(false);
-    }
-  }, [showMolarMassCalculator]);
-
-  const toggleEquationBalancer = useCallback(() => {
-    setShowEquationBalancer(prev => !prev);
-    if (!showEquationBalancer) {
-      setShowMolarMassCalculator(false);
-      setShowChemicalNamer(false);
-    }
-  }, [showEquationBalancer]);
-
-  const toggleChemicalNamer = useCallback(() => {
-    setShowChemicalNamer(prev => !prev);
-    if (!showChemicalNamer) {
-      setShowMolarMassCalculator(false);
-      setShowEquationBalancer(false);
-    }
-  }, [showChemicalNamer]);
-
-  const toggleStoichiometry = useCallback(() => {
-    setShowStoichiometry(prev => !prev);
-    if (!showStoichiometry) {
-      setShowMolarMassCalculator(false);
-      setShowEquationBalancer(false);
-      setShowChemicalNamer(false);
-    }
-  }, [showStoichiometry, setShowMolarMassCalculator, setShowEquationBalancer, setShowChemicalNamer]);
+  const toggleTool = useCallback((tool: string) => {
+    setActiveTools(prev => {
+      if (prev.includes(tool)) {
+        return prev.filter(t => t !== tool);
+      } else {
+        return [...prev, tool];
+      }
+    });
+  }, []);
 
   // Memoize the main table structure to avoid recalculation
   // Using virtualization to only render visible elements
@@ -338,39 +358,11 @@ const PeriodicTable: React.FC = () => {
             {isTableVisible ? 'Hide Table' : 'Show Table'}
           </button>
           
-          <button
-            onClick={toggleMolarMassCalculator}
-            className="px-3 py-1 sm:px-4 sm:py-2 bg-green-500/20 hover:bg-green-500/30 rounded-md text-xs sm:text-sm font-medium flex items-center gap-1 sm:gap-2 transition-colors"
-          >
-            <span className="material-icons text-sm sm:text-base">
-              calculate
-            </span>
-            Molar Mass Calculator
-          </button>
-          
-          <button
-            onClick={toggleEquationBalancer}
-            className="px-3 py-1 sm:px-4 sm:py-2 bg-blue-500/20 hover:bg-blue-500/30 rounded-md text-xs sm:text-sm font-medium flex items-center gap-1 sm:gap-2 transition-colors"
-          >
-            <span className="material-icons text-sm sm:text-base">balance</span>
-            Balance Equations
-          </button>
-          
-          <button
-            onClick={toggleChemicalNamer}
-            className="px-3 py-1 sm:px-4 sm:py-2 bg-purple-500/20 hover:bg-purple-500/30 rounded-md text-xs sm:text-sm font-medium flex items-center gap-1 sm:gap-2 transition-colors"
-          >
-            <span className="material-icons text-sm sm:text-base">text_format</span>
-            Chemical Namer
-          </button>
-          
-          <button
-            onClick={toggleStoichiometry}
-            className="px-3 py-1 sm:px-4 sm:py-2 bg-amber-500/20 hover:bg-amber-500/30 rounded-md text-xs sm:text-sm font-medium flex items-center gap-1 sm:gap-2 transition-colors"
-          >
-            <span className="material-icons text-sm sm:text-base">scale</span>
-            Stoichiometry
-          </button>
+          <ToolsMenu 
+            tools={tools}
+            activeTools={activeTools}
+            onToggleTool={toggleTool}
+          />
           
           <a 
             href="#" 
@@ -384,29 +376,42 @@ const PeriodicTable: React.FC = () => {
             Learn More
           </a>
         </div>
+        
+        {/* Display active tool tags below the main buttons */}
+        <ActiveToolTags
+          tools={tools}
+          activeTools={activeTools}
+          onToggleTool={toggleTool}
+        />
       </div>
 
-      {showMolarMassCalculator && (
+      {activeTools.includes('MolarMassCalculator') && (
         <div className="my-4">
           <MolarMassCalculator />
         </div>
       )}
 
-      {showEquationBalancer && (
+      {activeTools.includes('EquationBalancer') && (
         <div className="my-4">
           <EquationBalancer />
         </div>
       )}
 
-      {showChemicalNamer && (
+      {activeTools.includes('ChemicalNamer') && (
         <div className="my-4">
           <ChemicalNamer />
         </div>
       )}
 
-      {showStoichiometry && (
+      {activeTools.includes('Stoichiometry') && (
         <div className="my-4">
           <Stoichiometry />
+        </div>
+      )}
+      
+      {activeTools.includes('GasLawCalculator') && (
+        <div className="my-4">
+          <GasLawCalculator />
         </div>
       )}
 
