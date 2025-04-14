@@ -10,6 +10,9 @@ import Stoichiometry from './Stoichiometry';
 import GasLawCalculator from './GasLawCalculator';
 import ToolsMenu, { Tool } from './ToolsMenu';
 import ActiveToolTags from './ActiveToolTags';
+import SigFigCalculator from './SigFigCalculator';
+import LewisStructureGenerator from './LewisStructureGenerator';
+import ReactionPredictor from './ReactionPredictor';
 
 // Lazy load heavy components to improve initial load time
 const ElementCard = lazy(() => import('./ElementCard'));
@@ -98,6 +101,30 @@ const PeriodicTable: React.FC = () => {
       icon: 'gas_meter',
       component: <GasLawCalculator />,
       color: 'bg-cyan-600'
+    },
+    {
+      id: 'SigFigCalculator',
+      name: 'Significant Figures Calculator',
+      description: 'Calculate with precise significant figures',
+      icon: 'exposure',
+      component: <SigFigCalculator />,
+      color: 'bg-orange-600'
+    },
+    {
+      id: 'LewisStructureGenerator',
+      name: 'Lewis Structure Generator',
+      description: 'Visualize electron arrangements in molecules',
+      icon: 'bubble_chart',
+      component: <LewisStructureGenerator />,
+      color: 'bg-indigo-600'
+    },
+    {
+      id: 'ReactionPredictor',
+      name: 'Reaction Predictor',
+      description: 'Predict products of common chemical reactions',
+      icon: 'science',
+      component: <ReactionPredictor />,
+      color: 'bg-rose-600'
     }
   ], []);
 
@@ -412,6 +439,24 @@ const PeriodicTable: React.FC = () => {
       {activeTools.includes('GasLawCalculator') && (
         <div className="my-4">
           <GasLawCalculator />
+        </div>
+      )}
+      
+      {activeTools.includes('SigFigCalculator') && (
+        <div className="my-4">
+          <SigFigCalculator />
+        </div>
+      )}
+      
+      {activeTools.includes('LewisStructureGenerator') && (
+        <div className="my-4">
+          <LewisStructureGenerator />
+        </div>
+      )}
+      
+      {activeTools.includes('ReactionPredictor') && (
+        <div className="my-4">
+          <ReactionPredictor />
         </div>
       )}
 
