@@ -13,6 +13,8 @@ import ActiveToolTags from './ActiveToolTags';
 import SigFigCalculator from './SigFigCalculator';
 import LewisStructureGenerator from './LewisStructureGenerator';
 import ReactionPredictor from './ReactionPredictor';
+import ScientificCalculator from './ScientificCalculator';
+import UnitConverter from './UnitConverter';
 
 // Lazy load heavy components to improve initial load time
 const ElementCard = lazy(() => import('./ElementCard'));
@@ -125,18 +127,28 @@ const PeriodicTable: React.FC = () => {
       icon: 'science',
       component: <ReactionPredictor />,
       color: 'bg-rose-600'
+    },
+    {
+      id: 'ScientificCalculator',
+      name: 'Scientific Calculator',
+      description: 'Perform complex mathematical calculations',
+      icon: 'calculate',
+      component: <ScientificCalculator />,
+      color: 'bg-teal-600'
+    },
+    {
+      id: 'UnitConverter',
+      name: 'Unit Converter',
+      description: 'Convert between different units of measurement',
+      icon: 'swap_horiz',
+      component: <UnitConverter />,
+      color: 'bg-yellow-600'
     }
   ], []);
 
-  // Check if we're on mobile
   useEffect(() => {
     const checkMobile = () => {
-      const mobile = window.innerWidth < 768;
-      setIsMobile(mobile);
-      // On very small screens, start with the table hidden
-      if (window.innerWidth < 480) {
-        setIsTableVisible(false);
-      }
+      setIsMobile(window.innerWidth < 768);
     };
     
     checkMobile();
@@ -457,6 +469,18 @@ const PeriodicTable: React.FC = () => {
       {activeTools.includes('ReactionPredictor') && (
         <div className="my-4">
           <ReactionPredictor />
+        </div>
+      )}
+
+      {activeTools.includes('ScientificCalculator') && (
+        <div className="my-4">
+          <ScientificCalculator />
+        </div>
+      )}
+      
+      {activeTools.includes('UnitConverter') && (
+        <div className="my-4">
+          <UnitConverter />
         </div>
       )}
 

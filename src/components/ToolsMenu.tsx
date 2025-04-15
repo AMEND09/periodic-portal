@@ -4,6 +4,8 @@ import { Dialog, DialogContent, DialogTrigger } from './ui/dialog';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
 import { X } from 'lucide-react';
+import ScientificCalculator from './ScientificCalculator';
+import UnitConverter from './UnitConverter';
 
 export interface Tool {
   id: string;
