@@ -15,6 +15,10 @@ import LewisStructureGenerator from './LewisStructureGenerator';
 import ReactionPredictor from './ReactionPredictor';
 import ScientificCalculator from './ScientificCalculator';
 import UnitConverter from './UnitConverter';
+import DilutionCalculator from './DilutionCalculator';
+import MolalityCalculator from './MolalityCalculator';
+import MolarityCalculator from './MolarityCalculator';
+import ColligativePropertiesCalculator from './ColligativePropertiesCalculator';
 
 // Lazy load heavy components to improve initial load time
 const ElementCard = lazy(() => import('./ElementCard'));
@@ -103,6 +107,38 @@ const PeriodicTable: React.FC = () => {
       icon: 'gas_meter',
       component: <GasLawCalculator />,
       color: 'bg-cyan-600'
+    },
+    {
+      id: 'DilutionCalculator',
+      name: 'Dilution Calculator',
+      description: 'Solve dilution problems using C₁V₁ = C₂V₂',
+      icon: 'water_drop',
+      component: <DilutionCalculator />,
+      color: 'bg-sky-600'
+    },
+    {
+      id: 'MolalityCalculator',
+      name: 'Molality Calculator',
+      description: 'Calculate molality of solutions',
+      icon: 'science',
+      component: <MolalityCalculator />,
+      color: 'bg-emerald-600'
+    },
+    {
+      id: 'MolarityCalculator',
+      name: 'Molarity Calculator',
+      description: 'Calculate molarity of solutions',
+      icon: 'opacity',
+      component: <MolarityCalculator />,
+      color: 'bg-violet-600'
+    },
+    {
+      id: 'ColligativePropertiesCalculator',
+      name: 'Colligative Properties',
+      description: 'Calculate boiling point elevation and freezing point depression',
+      icon: 'ac_unit',
+      component: <ColligativePropertiesCalculator />,
+      color: 'bg-pink-600'
     },
     {
       id: 'SigFigCalculator',
@@ -481,6 +517,30 @@ const PeriodicTable: React.FC = () => {
       {activeTools.includes('UnitConverter') && (
         <div className="my-4">
           <UnitConverter />
+        </div>
+      )}
+      
+      {activeTools.includes('DilutionCalculator') && (
+        <div className="my-4">
+          <DilutionCalculator />
+        </div>
+      )}
+      
+      {activeTools.includes('MolalityCalculator') && (
+        <div className="my-4">
+          <MolalityCalculator />
+        </div>
+      )}
+      
+      {activeTools.includes('MolarityCalculator') && (
+        <div className="my-4">
+          <MolarityCalculator />
+        </div>
+      )}
+      
+      {activeTools.includes('ColligativePropertiesCalculator') && (
+        <div className="my-4">
+          <ColligativePropertiesCalculator />
         </div>
       )}
 
