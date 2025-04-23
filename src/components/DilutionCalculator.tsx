@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+import { Input } from './ui/input';
+import { Button } from './ui/button';
+import { Label } from './ui/label';
 
 const DilutionCalculator: React.FC = () => {
   const [initialConcentration, setInitialConcentration] = useState('');
@@ -37,60 +40,70 @@ const DilutionCalculator: React.FC = () => {
     <Card>
       <CardHeader>
         <CardTitle>Dilution Calculator</CardTitle>
-        <CardDescription>Calculate dilution using the formula C1V1 = C2V2.</CardDescription>
+        <CardDescription>Calculate dilution using the formula C₁V₁ = C₂V₂.</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-          <div>
-            <label className="block text-xs mb-1">Initial Concentration (C1)</label>
-            <input
+          <div className="space-y-1.5">
+            <Label htmlFor="initial-concentration">Initial Concentration (C₁)</Label>
+            <Input
+              id="initial-concentration"
               type="number"
               value={initialConcentration}
               onChange={(e) => setInitialConcentration(e.target.value)}
-              placeholder="Enter C1"
-              className="w-full px-3 py-2 border rounded-md"
+              placeholder="Enter C₁"
             />
           </div>
-          <div>
-            <label className="block text-xs mb-1">Initial Volume (V1)</label>
-            <input
+          <div className="space-y-1.5">
+            <Label htmlFor="initial-volume">Initial Volume (V₁)</Label>
+            <Input
+              id="initial-volume"
               type="number"
               value={initialVolume}
               onChange={(e) => setInitialVolume(e.target.value)}
-              placeholder="Enter V1"
-              className="w-full px-3 py-2 border rounded-md"
+              placeholder="Enter V₁"
             />
           </div>
-          <div>
-            <label className="block text-xs mb-1">Final Concentration (C2)</label>
-            <input
+          <div className="space-y-1.5">
+            <Label htmlFor="final-concentration">Final Concentration (C₂)</Label>
+            <Input
+              id="final-concentration"
               type="number"
               value={finalConcentration}
               onChange={(e) => setFinalConcentration(e.target.value)}
-              placeholder="Enter C2"
-              className="w-full px-3 py-2 border rounded-md"
+              placeholder="Enter C₂"
             />
           </div>
-          <div>
-            <label className="block text-xs mb-1">Final Volume (V2)</label>
-            <input
+          <div className="space-y-1.5">
+            <Label htmlFor="final-volume">Final Volume (V₂)</Label>
+            <Input
+              id="final-volume"
               type="number"
               value={finalVolume}
               onChange={(e) => setFinalVolume(e.target.value)}
-              placeholder="Enter V2"
-              className="w-full px-3 py-2 border rounded-md"
+              placeholder="Enter V₂"
             />
           </div>
         </div>
-        <button
+        <Button
           onClick={calculate}
-          className="w-full px-4 py-2 bg-blue-500 text-white rounded-md"
+          className="w-full"
         >
           Calculate
-        </button>
+        </Button>
 
-        {error && <div className="mt-4 text-red-500">{error}</div>}
-        {result && <div className="mt-4 text-green-500">{result}</div>}
+        {error && (
+          <div className="mt-4 p-3 bg-red-500/10 rounded text-red-500 text-sm">
+            {error}
+          </div>
+        )}
+        
+        {result && (
+          <div className="mt-4 p-3 bg-green-500/10 rounded text-center">
+            <div className="text-sm">Result:</div>
+            <div className="text-xl font-bold">{result}</div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
