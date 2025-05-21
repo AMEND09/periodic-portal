@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Chemistry Study Guide</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Visualization & Content Choices:
+        - Q&A: HTML accordions (JS for toggle) for clarity and space-saving. Goal: Inform.
+        - Periodic Trends (Atomic Radius, Electronegativity, Ionization Energy): Illustrative Bar Charts (Chart.js Canvas). Goal: Compare/Show Change. Interaction: Tooltips. Justification: Visual aid for trends.
+        - Molecular Shapes: HTML/Tailwind diagrams. Goal: Organize/Inform. Interaction: Click to highlight. Justification: Visual association.
+        - Reaction Types & Stoichiometry Examples: Formatted HTML text. Goal: Inform. Interaction: None. Justification: Clear presentation of definitions and solved problems.
+        - Search: JS filtering of text content. Goal: Find. Interaction: Text input. Justification: Essential for large content.
+        - CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .content-section {
+            display: none;
+        }
+        .content-section.active {
+            display: block;
+        }
+        .accordion-content {
+            display: none;
+            transition: max-height 0.3s ease-out;
+            overflow: hidden;
+        }
+        .accordion-button.open .arrow {
+            transform: rotate(90deg);
+        }
+        .arrow {
+            transition: transform 0.3s ease-in-out;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px; /* Adjusted for better fit */
+            margin-left: auto;
+            margin-right: auto;
+            height: 250px; /* Adjusted for better fit */
+            max-height: 300px; /* Adjusted for better fit */
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 300px;
+                max-height: 350px;
+            }
+        }
+        /* Custom scrollbar for better aesthetics */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1; /* Tailwind gray-300 */
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; /* Tailwind gray-400 */
+        }
+        .math {
+            font-family: 'Times New Roman', Times, serif;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body class="bg-stone-100 text-stone-800">
+    <div class="flex flex-col md:flex-row min-h-screen">
+        <nav class="md:w-64 bg-stone-200 p-4 space-y-2 md:h-screen md:sticky md:top-0 overflow-y-auto">
+            <h2 class="text-2xl font-bold text-teal-700 mb-6">Chemistry Guide</h2>
+            <input type="text" id="searchInput" placeholder="Search topics..." class="w-full p-2 rounded-lg border border-stone-300 focus:ring-teal-500 focus:border-teal-500 mb-4">
+            
+            <button data-target="home" class="nav-button w-full text-left p-2 rounded-lg hover:bg-teal-500 hover:text-white transition-colors duration-200">Home</button>
+            <button data-target="general" class="nav-button w-full text-left p-2 rounded-lg hover:bg-teal-500 hover:text-white transition-colors duration-200">General Concepts</button>
+            <button data-target="atomic" class="nav-button w-full text-left p-2 rounded-lg hover:bg-teal-500 hover:text-white transition-colors duration-200">Atomic Structure</button>
+            <button data-target="periodic" class="nav-button w-full text-left p-2 rounded-lg hover:bg-teal-500 hover:text-white transition-colors duration-200">Periodic Table & Trends</button>
+            <button data-target="bonding" class="nav-button w-full text-left p-2 rounded-lg hover:bg-teal-500 hover:text-white transition-colors duration-200">Bonding & Molecular Structure</button>
+            <button data-target="reactions" class="nav-button w-full text-left p-2 rounded-lg hover:bg-teal-500 hover:text-white transition-colors duration-200">Chemical Reactions</button>
+            <button data-target="stoichiometry" class="nav-button w-full text-left p-2 rounded-lg hover:bg-teal-500 hover:text-white transition-colors duration-200">Stoichiometry</button>
+            <button data-target="states_imf" class="nav-button w-full text-left p-2 rounded-lg hover:bg-teal-500 hover:text-white transition-colors duration-200">States of Matter & IMFs</button>
+            <button data-target="solutions" class="nav-button w-full text-left p-2 rounded-lg hover:bg-teal-500 hover:text-white transition-colors duration-200">Solutions & Concentrations</button>
+            <button data-target="acids_bases" class="nav-button w-full text-left p-2 rounded-lg hover:bg-teal-500 hover:text-white transition-colors duration-200">Acids, Bases & pH</button>
+            <button data-target="thermo_kinetics" class="nav-button w-full text-left p-2 rounded-lg hover:bg-teal-500 hover:text-white transition-colors duration-200">Thermo & Kinetics</button>
+            <button data-target="gases" class="nav-button w-full text-left p-2 rounded-lg hover:bg-teal-500 hover:text-white transition-colors duration-200">Gases & Gas Laws</button>
+        </nav>
+
+        <main class="flex-1 p-6 md:p-10 bg-white shadow-lg rounded-lg m-0 md:m-4 overflow-y-auto">
+            <div id="home" class="content-section active">
+                <h1 class="text-3xl font-bold text-teal-700 mb-4">Welcome to the Interactive Chemistry Study Guide!</h1>
+                <p class="text-lg text-stone-700 mb-6">
+                    This guide is designed to help you explore and understand key chemistry concepts from your MST Chemistry Final Study Guide. 
+                    Use the navigation panel on the left to select a topic, or use the search bar to find specific questions or keywords. 
+                    Each section provides answers to common study questions, and some include interactive visualizations to aid your learning.
+                </p>
+                <p class="text-lg text-stone-700">
+                    Click on a topic to begin, or try searching for a concept like "atomic radius" or "stoichiometry". Happy studying!
+                </p>
+            </div>
+
+            <div id="general" class="content-section">
+                <h1 class="text-3xl font-bold text-teal-700 mb-6">General Chemistry Concepts</h1>
+                <p class="text-md text-stone-600 mb-6">This section covers fundamental concepts in chemistry, including the states of matter, naming conventions for ions and compounds, an overview of the periodic table classifications, and basic principles like significant figures and density calculations. Understanding these basics is crucial for tackling more complex topics.</p>
+                
+                <div class="qna-item mb-4 p-4 border border-stone-200 rounded-lg shadow-sm">
+                    <button class="accordion-button w-full text-left font-semibold text-teal-600 flex justify-between items-center">
+                        <span>Describe solids, liquids, gases (shape, volume – indefinite or definite?).</span>
+                        <span class="arrow text-xl transition-transform duration-300 transform">▶</span>
+                    </button>
+                    <div class="accordion-content mt-2 text-stone-700">
+                        <ul class="list-disc list-inside ml-4">
+                            <li><strong>Solid</strong>: Definite shape; definite volume.</li>
+                            <li><strong>Liquid</strong>: Indefinite shape; definite volume.</li>
+                            <li><strong>Gas</strong>: Indefinite shape; indefinite volume.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="qna-item mb-4 p-4 border border-stone-200 rounded-lg shadow-sm">
+                    <button class="accordion-button w-full text-left font-semibold text-teal-600 flex justify-between items-center">
+                        <span>How do you determine the names/symbols for ions?</span>
+                        <span class="arrow text-xl transition-transform duration-300 transform">▶</span>
+                    </button>
+                    <div class="accordion-content mt-2 text-stone-700">
+                        <ul class="list-disc list-inside ml-4">
+                            <li><strong>Cation (Positive Ion)</strong>: Element name + "ion" (e.g., Na⁺: Sodium ion).</li>
+                            <li><strong>Anion (Negative Ion)</strong>: Change element ending to "ide" (e.g., Cl⁻: Chloride).</li>
+                            <li><strong>Multivalent Ions</strong>: Use Roman numerals in parentheses after the element name to indicate the charge (e.g., Chromium(II) iodide for CrI₂). Latin affixes (-ic for higher charge, -ous for lower charge) can also be used.</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="qna-item mb-4 p-4 border border-stone-200 rounded-lg shadow-sm">
+                    <button class="accordion-button w-full text-left font-semibold text-teal-600 flex justify-between items-center">
+                        <span>How do you determine the names/symbols for compounds?</span>
+                        <span class="arrow text-xl transition-transform duration-300 transform">▶</span>
+                    </button>
+                    <div class="accordion-content mt-2 text-stone-700">
+                        <ul class="list-disc list-inside ml-4">
+                            <li><strong>Ionic Compounds</strong>: Name the cation first, then the anion (dropping "ion" from the anion's name). For polyatomic ions, name the cation then the polyatomic ion. Example: NaCl is Sodium chloride. CaSO₄ is Calcium sulfate.</li>
+                            <li><strong>Covalent Compounds (Molecules)</strong>: Use prefixes to indicate the number of atoms of each element. Both elements in the compound need a prefix unless the first one is "mono-". Example: H₂O is Dihydrogen monoxide. CO₂ is Carbon dioxide.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="qna-item mb-4 p-4 border border-stone-200 rounded-lg shadow-sm">
+                    <button class="accordion-button w-full text-left font-semibold text-teal-600 flex justify-between items-center">
+                        <span>What is the difference between boiling, evaporation, sublimation, and freezing?</span>
+                        <span class="arrow text-xl transition-transform duration-300 transform">▶</span>
+                    </button>
+                    <div class="accordion-content mt-2 text-stone-700">
+                        <p>These are all <strong>Changes of State</strong>:</p>
+                        <ul class="list-disc list-inside ml-4">
+                            <li><strong>Melting (Solid → Liquid)</strong>: Requires energy (endothermic).</li>
+                            <li><strong>Vaporizing (Liquid → Gas)</strong>: Requires energy (endothermic). This includes boiling (rapid vaporization throughout the liquid at a specific temperature) and evaporation (slower vaporization at the surface below the boiling point).</li>
+                            <li><strong>Freezing (Liquid → Solid)</strong>: Releases energy (exothermic).</li>
+                            <li><strong>Condensation (Gas → Liquid)</strong>: Releases energy (exothermic).</li>
+                            <li><strong>Sublimation (Solid → Gas)</strong>: Requires energy (endothermic).</li>
+                            <li><strong>Deposition (Gas → Solid)</strong>: Releases energy (exothermic).</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="qna-item mb-4 p-4 border border-stone-200 rounded-lg shadow-sm">
+                    <button class="accordion-button w-full text-left font-semibold text-teal-600 flex justify-between items-center">
+                        <span>What is a physical change? What is a chemical change?</span>
+                        <span class="arrow text-xl transition-transform duration-300 transform">▶</span>
+                    </button>
+                    <div class="accordion-content mt-2 text-stone-700">
+                        <ul class="list-disc list-inside ml-4">
+                            <li><strong>Physical Change</strong>: Alters physical properties of matter without changing its chemical identity (e.g., cutting, changing of state, dissolving).</li>
+                            <li><strong>Chemical Change</strong>: Alters chemical properties of matter, resulting in a new substance with a new chemical identity (e.g., burning, cooking, rusting). Indicators include energy change (heat, light), color change, gas formation, and precipitate formation.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="qna-item mb-4 p-4 border border-stone-200 rounded-lg shadow-sm">
+                    <button class="accordion-button w-full text-left font-semibold text-teal-600 flex justify-between items-center">
+                        <span>What is the rule for determining significant figures when multiplying and dividing? Adding or subtracting?</span>
+                        <span class="arrow text-xl transition-transform duration-300 transform">▶</span>
+                    </button>
+                    <div class="accordion-content mt-2 text-stone-700">
+                        <ul class="list-disc list-inside ml-4">
+                            <li><strong>Multiplying and Dividing</strong>: The answer will have the same number of significant figures as the value with the least significant figures in the operation. Round at the end.</li>
+                            <li><strong>Adding or Subtracting</strong>: The answer will have the same number of digits to the right of the decimal point as the value with the least digits to the right of the decimal point in the operation. Round at the end.</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="qna-item mb-4 p-4 border border-stone-200 rounded-lg shadow-sm">
+                    <button class="accordion-button w-full text-left font-semibold text-teal-600 flex justify-between items-center">
+                        <span>How do you calculate the density of an object?</span>
+                        <span class="arrow text-xl transition-transform duration-300 transform">▶</span>
+                    </button>
+                    <div class="accordion-content mt-2 text-stone-700">
+                        <p>Use the formula: <span class="math">D = m/v</span> (Density = mass / volume). The notes also provide rearranged forms: <span class="math">m = Dv</span> and <span class="math">v = m/D</span>.</p>
+                    </div>
+                </div>
+
+                <div class="qna-item mb-4 p-4 border border-stone-200 rounded-lg shadow-sm">
+                    <button class="accordion-button w-full text-left font-semibold text-teal-600 flex justify-between items-center">
+                        <span>What is proper lab attire and behavior?</span>
+                        <span class="arrow text-xl transition-transform duration-300 transform">▶</span>
+                    </button>
+                    <div class="accordion-content mt-2 text-stone-700">
+                        <p>The notes explicitly mention: Goggles/Safety Glasses should be worn to protect eyes, worn over prescription glasses, and contact lenses should not be worn in the lab. Proper handling of lab equipment is also implied. General lab safety includes tying back long hair, wearing closed-toe shoes, no eating or drinking, and knowing the location of safety equipment.</p>
+                    </div>
+                </div>
+
+            </div>
+
+            <div id="atomic" class="content-section">
+                <h1 class="text-3xl font-bold text-teal-700 mb-6">Atomic Structure & The Atom</h1>
+                <p class="text-md text-stone-600 mb-6">This section delves into the fundamental building block of matter: the atom. Explore the historical development of atomic theory, the subatomic particles (protons, neutrons, electrons), and concepts like atomic number, mass number, isotopes, and ions. Understanding electron configurations is also key here.</p>
+
+                <div class="qna-item mb-4 p-4 border border-stone-200 rounded-lg shadow-sm">
+                    <button class="accordion-button w-full text-left font-semibold text-teal-600 flex justify-between items-center">
+                        <span>What is atomic number? What is mass number?</span>
+                        <span class="arrow text-xl transition-transform duration-300 transform">▶</span>
+                    </button>
+                    <div class="accordion-content mt-2 text-stone-700">
+                        <ul class="list-disc list-inside ml-4">
+                            <li><strong>Atomic Number (Z)</strong>: The number of protons in the nucleus of an atom. It uniquely identifies an element.</li>
+                            <li><strong>Mass Number (A)</strong>: The total number of protons and neutrons in an atom's nucleus.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="qna-item mb-4 p-4 border border-stone-200 rounded-lg shadow-sm">
+                    <button class="accordion-button w-full text-left font-semibold text-teal-600 flex justify-between items-center">
+                        <span>How do you determine the number of protons, neutrons, and electrons in atoms/ions?</span>
+                        <span class="arrow text-xl transition-transform duration-300 transform">▶</span>
+                    </button>
+                    <div class="accordion-content mt-2 text-stone-700">
+                        <ul class="list-disc list-inside ml-4">
+                            <li><strong>Protons</strong>: Equal to the atomic number (Z).</li>
+                            <li><strong>Neutrons</strong>: Mass number (A) - Atomic number (Z).</li>
+                            <li><strong>Electrons</strong>:
+                                <ul class="list-disc list-inside ml-4">
+                                    <li>For a neutral atom: Equal to the number of protons.</li>
+                                    <li>For an ion: Number of protons - charge (for cations, e.g., if charge is +2, subtract 2 electrons) or Number of protons + |charge| (for anions, e.g., if charge is -1, add 1 electron).</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="qna-item mb-4 p-4 border border-stone-200 rounded-lg shadow-sm">
+                    <button class="accordion-button w-full text-left font-semibold text-teal-600 flex justify-between items-center">
+                        <span>What is an isotope? What is an ion?</span>
+                        <span class="arrow text-xl transition-transform duration-300 transform">▶</span>
+                    </button>
+                    <div class="accordion-content mt-2 text-stone-700">
+                        <ul class="list-disc list-inside ml-4">
+                            <li><strong>Isotope</strong>: Atoms of the same element (same number of protons) that have different numbers of neutrons, and therefore different mass numbers. They are chemically alike but differ in physical properties.</li>
+                            <li><strong>Ion</strong>: An atom or molecule that has gained or lost one or more electrons, giving it a net positive or negative electrical charge.
+                                <ul class="list-disc list-inside ml-4">
+                                    <li><strong>Cation</strong>: Positive ion (lost electrons).</li>
+                                    <li><strong>Anion</strong>: Negative ion (gained electrons).</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="qna-item mb-4 p-4 border border-stone-200 rounded-lg shadow-sm">
+                    <button class="accordion-button w-full text-left font-semibold text-teal-600 flex justify-between items-center">
+                        <span>How do you do electron configurations? In [Ne] 3s²3p³, what do coefficients, letters, and superscripts represent?</span>
+                        <span class="arrow text-xl transition-transform duration-300 transform">▶</span>
+                    </button>
+                    <div class="accordion-content mt-2 text-stone-700">
+                        <p><strong>How to do electron configurations</strong>: Follow these principles:</p>
+                        <ul class="list-disc list-inside ml-4">
+                            <li><strong>Aufbau Principle</strong>: Electrons fill the lowest available energy levels (orbitals) first.</li>
+                            <li><strong>Pauli Exclusion Principle</strong>: A maximum of two electrons can occupy a single atomic orbital, and these two electrons must have opposite spins.</li>
+                            <li><strong>Hund's Rule</strong>: Electrons will individually occupy each orbital within a subshell before doubling up in any one orbital. When occupying orbitals of equal energy, electrons will have parallel spins.</li>
+                        </ul>
+                        <p>In the configuration <strong>[Ne] 3s²3p³</strong>:</p>
+                        <ul class="list-disc list-inside ml-4">
+                            <li><strong>[Ne]</strong>: Represents the electron configuration of Neon, the preceding noble gas (noble gas shorthand).</li>
+                            <li><strong>Coefficients (large numbers like 3)</strong>: Represent the principal <strong>energy level</strong> (shell).</li>
+                            <li><strong>Letters (s, p)</strong>: Represent the type of <strong>sublevel</strong> (orbital shape).</li>
+                            <li><strong>Superscripts (small numbers like ² and ³)</strong>: Represent the <strong>number of electrons</strong> in that specific sublevel.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="qna-item mb-4 p-4 border border-stone-200 rounded-lg shadow-sm">
+                    <button class="accordion-button w-full text-left font-semibold text-teal-600 flex justify-between items-center">
+                        <span>What were the contributions of Dalton, Thomson, Rutherford? (Bohr not in notes)</span>
+                        <span class="arrow text-xl transition-transform duration-300 transform">▶</span>
+                    </button>
+                    <div class="accordion-content mt-2 text-stone-700">
+                        <ul class="list-disc list-inside ml-4">
+                            <li><strong>John Dalton</strong>: Developed the first comprehensive atomic theory, proposing that all matter is made of indivisible atoms, atoms of the same element are identical, atoms of different elements are different, atoms combine in simple whole-number ratios to form compounds, and atoms are rearranged in chemical reactions.</li>
+                            <li><strong>J.J. Thomson</strong>: Discovered the electron using cathode ray tubes. He determined the charge-to-mass ratio of electrons and proposed the "Plum Pudding Model" of the atom, where negatively charged electrons were embedded within a positively charged sphere.</li>
+                            <li><strong>Ernest Rutherford</strong>: Conducted the Gold Foil Experiment, which disproved the Plum Pudding Model. His findings led to the nuclear model of the atom, proposing that atoms have a small, dense, positively charged nucleus at the center, with electrons orbiting it.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div id="periodic" class="content-section">
+                <h1 class="text-3xl font-bold text-teal-700 mb-6">Periodic Table & Trends</h1>
+                <p class="text-md text-stone-600 mb-6">The periodic table is a cornerstone of chemistry, organizing elements based on their properties. This section covers the structure of the table (groups, periods, blocks), classifications of elements (metals, non-metals, specific families), and key periodic trends such as atomic radius, ionization energy, and electronegativity. Visualizing these trends can greatly aid understanding.</p>
+                
+                <div class="qna-item mb-4 p-4 border border-stone-200 rounded-lg shadow-sm">
+                    <button class="accordion-button w-full text-left font-semibold text-teal-600 flex justify-between items-center">
+                        <span>Which group (and/or atomic numbers) corresponds to various element classifications?</span>
+                        <span class="arrow text-xl transition-transform duration-300 transform">▶</span>
+                    </button>
+                    <div class="accordion-content mt-2 text-stone-700">
+                        <ul class="list-disc list-inside ml-4">
+                            <li><strong>Alkali metals</strong>: Group 1</li>
+                            <li><strong>Alkaline Earth metals</strong>: Group 2 (from notes)</li>
+                            <li><strong>Transition metals</strong>: Groups 3–12</li>
+                            <li><strong>Inner transition metals</strong>: Lanthanides and Actinides (usually shown below the main table, technically part of groups 3-12 periods 6 and 7)</li>
+                            <li><strong>Halogens</strong>: Group 17</li>
+                            <li><strong>Noble gases</strong>: Group 18 (also called Inert Gases)</li>
+                            <li><strong>Gases at room temperature</strong>: Noble gases, hydrogen, nitrogen, oxygen, fluorine, and chlorine.</li>
+                            <li><strong>Liquids at room temperature</strong>: Mercury (Hg) and bromine (Br).</li>
+                            <li><strong>Solids at room temperature</strong>: Most elements.</li>
+                            <li><strong>Man-made elements</strong>: All elements above atomic number 92 (transuranium elements), plus technetium (Tc, atomic number 43) and promethium (Pm, atomic number 61).</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="qna-item mb-4 p-4 border border-stone-200 rounded-lg shadow-sm">
+                    <button class="accordion-button w-full text-left font-semibold text-teal-600 flex justify-between items-center">
+                        <span>What is the trend for atomic radius?</span>
+                        <span class="arrow text-xl transition-transform duration-300 transform">▶</span>
+                    </button>
+                    <div class="accordion-content mt-2 text-stone-700">
+                        <p>Atomic radius generally:</p>
+                        <ul class="list-disc list-inside ml-4">
+                            <li><strong>Increases down a group</strong>: More energy levels are added, so the outermost electrons are further from the nucleus.</li>
+                            <li><strong>Decreases across a period (left to right)</strong>: The number of protons in the nucleus increases, leading to a stronger effective nuclear charge that pulls the electrons closer to the nucleus, despite being in the same energy level.</li>
+                        </ul>
+                        <div class="chart-container mt-4"><canvas id="atomicRadiusChart"></canvas></div>
+                    </div>
+                </div>
+                <div class="qna-item mb-4 p-4 border border-stone-200 rounded-lg shadow-sm">
+                    <button class="accordion-button w-full text-left font-semibold text-teal-600 flex justify-between items-center">
+                        <span>What is the trend for electronegativity?</span>
+                        <span class="arrow text-xl transition-transform duration-300 transform">▶</span>
+                    </button>
+                    <div class="accordion-content mt-2 text-stone-700">
+                        <p>Electronegativity (the tendency of an atom to attract electrons in a chemical bond) generally:</p>
+                        <ul class="list-disc list-inside ml-4">
+                            <li><strong>Increases across a period (left to right)</strong>: Atoms become smaller and the nuclear charge increases, making it easier to attract bonding electrons.</li>
+                            <li><strong>Decreases down a group</strong>: Atoms become larger, and the bonding electrons are further from the nucleus and shielded by more inner electrons, reducing the attraction.</li>
+                            <li>Noble gases generally have no electronegativity values as they typically do not form bonds.</li>
+                        </ul>
+                        <div class="chart-container mt-4"><canvas id="electronegativityChart"></canvas></div>
+                    </div>
+                </div>
+                <div class="qna-item mb-4 p-4 border border-stone-200 rounded-lg shadow-sm">
+                    <button class="accordion-button w-full text-left font-semibold text-teal-600 flex justify-between items-center">
+                        <span>What is the trend for ionization energy?</span>
+                        <span class="arrow text-xl transition-transform duration-300 transform">▶</span>
+                    </button>
+                    <div class="accordion-content mt-2 text-stone-700">
+                        <p>Ionization energy (the energy required to remove an electron from a gaseous atom or ion) generally:</p>
+                        <ul class="list-disc list-inside ml-4">
+                            <li><strong>Increases across a period (left to right)</strong>: Atoms become smaller and the effective nuclear charge increases, holding electrons more tightly.</li>
+                            <li><strong>Decreases down a group</strong>: The outermost electron is further from the nucleus and shielded by inner electrons, making it easier to remove.</li>
+                        </ul>
+                        <div class="chart-container mt-4"><canvas id="ionizationEnergyChart"></canvas></div>
+                    </div>
+                </div>
+                <div class="qna-item mb-4 p-4 border border-stone-200 rounded-lg shadow-sm">
+                    <button class="accordion-button w-full text-left font-semibold text-teal-600 flex justify-between items-center">
+                        <span>Why do elements in the same group have similar properties?</span>
+                        <span class="arrow text-xl transition-transform duration-300 transform">▶</span>
+                    </button>
+                    <div class="accordion-content mt-2 text-stone-700">
+                        <p>Elements in the same group (column) of the periodic table have similar chemical properties because they have the same number of valence electrons (electrons in the outermost energy level). Valence electrons are primarily responsible for an atom's chemical behavior and how it bonds with other atoms.</p>
+                    </div>
+                </div>
+                 <div class="qna-item mb-4 p-4 border border-stone-200 rounded-lg shadow-sm">
+                    <button class="accordion-button w-full text-left font-semibold text-teal-600 flex justify-between items-center">
+                        <span>Which sections of the periodic table correspond to the s, p, d, and f blocks?</span>
+                        <span class="arrow text-xl transition-transform duration-300 transform">▶</span>
+                    </button>
+                    <div class="accordion-content mt-2 text-stone-700">
+                        <p>The periodic table is divided into blocks based on the sublevel being filled with valence electrons:</p>
+                        <ul class="list-disc list-inside ml-4">
+                            <li><strong>s-block</strong>: Groups 1 and 2 (Alkali Metals and Alkaline Earth Metals), plus Helium. Their valence electrons are in the s sublevel.</li>
+                            <li><strong>p-block</strong>: Groups 13 to 18 (excluding Helium). Their valence electrons are in the p sublevel (along with the s sublevel of the same energy level).</li>
+                            <li><strong>d-block</strong>: Groups 3 to 12 (Transition Metals). Their valence electrons are in the d sublevel of the energy level below the outermost s sublevel.</li>
+                            <li><strong>f-block</strong>: Lanthanides and Actinides (Inner Transition Metals), usually placed below the main table. Their valence electrons are in the f sublevel, typically two energy levels below the outermost s sublevel.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div id="bonding" class="content-section">
+                <h1 class="text-3xl font-bold text-teal-700 mb-6">Chemical Bonding & Molecular Structure</h1>
+                <p class="text-md text-stone-600 mb-6">This section explores how atoms connect to form molecules and compounds. Learn about the main types of chemical bonds (ionic and covalent), how to name compounds based on their bonding, the concept of polarity, and how VSEPR theory helps predict molecular shapes. Lewis dot structures are a key tool for visualizing bonding.</p>
+                
+                <div class="qna-item mb-4 p-4 border border-stone-200 rounded-lg shadow-sm">
+                    <button class="accordion-button w-full text-left font-semibold text-teal-600 flex justify-between items-center">
+                        <span>What is the difference between an ionic bond and a covalent bond?</span>
+                        <span class="arrow text-xl transition-transform duration-300 transform">▶</span>
+                    </button>
+                    <div class="accordion-content mt-2 text-stone-700">
+                        <ul class="list-disc list-inside ml-4">
+                            <li><strong>Ionic Bond</strong>: Involves the complete <strong>transfer of electrons</strong> from one atom (usually a metal) to another (usually a nonmetal), forming oppositely charged ions (cations and anions) that are held together by electrostatic attraction.</li>
+                            <li><strong>Covalent Bond</strong>: Involves the <strong>sharing of electrons</strong> between two atoms (typically nonmetals) to achieve a stable electron configuration (often an octet).</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="qna-item mb-4 p-4 border border-stone-200 rounded-lg shadow-sm">
+                    <button class="accordion-button w-full text-left font-semibold text-teal-600 flex justify-between items-center">
+                        <span>What is the difference between a polar and non-polar bond? How can you determine if a molecule is polar?</span>
+                        <span class="arrow text-xl transition-transform duration-300 transform">▶</span>
+                    </button>
+                    <div class="accordion-content mt-2 text-stone-700">
+                        <p><strong>Bond Polarity:</strong></p>
+                        <ul class="list-disc list-inside ml-4">
+                            <li><strong>Non-Polar Covalent Bond</strong>: Electrons are shared equally between two atoms. This occurs when the two atoms have very similar or identical electronegativities (difference typically 0.0 – 0.4).</li>
+                            <li><strong>Polar Covalent Bond</strong>: Electrons are shared unequally between two atoms due to a significant difference in their electronegativities (difference typically >0.4 – 2.0). The atom with higher electronegativity pulls the shared electrons closer, creating a partial negative charge (δ-) on that atom and a partial positive charge (δ+) on the other.</li>
+                        </ul>
+                        <p><strong>Molecule Polarity:</strong></p>
+                        <p>A molecule is polar (a dipole) if it meets two conditions:</p>
+                        <ol class="list-decimal list-inside ml-4">
+                            <li>It must contain polar bonds.</li>
+                            <li>The molecular shape must be asymmetrical, such that the bond dipoles do not cancel each other out. Symmetrical molecules with polar bonds can be nonpolar if the dipoles cancel (e.g., CO₂).</li>
+                        </ol>
+                        <p>Example: H₂O is polar (bent shape, asymmetrical arrangement of polar O-H bonds). CO₂ is nonpolar (linear shape, symmetrical arrangement of polar C=O bonds, dipoles cancel).</p>
+                    </div>
+                </div>
+                <div class="qna-item mb-4 p-4 border border-stone-200 rounded-lg shadow-sm">
+                    <button class="accordion-button w-full text-left font-semibold text-teal-600 flex justify-between items-center">
+                        <span>What does VSEPR stand for? What are common molecular shapes and bond angles?</span>
+                        <span class="arrow text-xl transition-transform duration-300 transform">▶</span>
+                    </button>
+                    <div class="accordion-content mt-2 text-stone-700">
+                        <p><strong>VSEPR</strong> stands for <strong>V</strong>alence <strong>S</strong>hell <strong>E</strong>lectron <strong>P</strong>air <strong>R</strong>epulsion theory. It states that electron pairs (both bonding pairs and lone pairs) around a central atom will arrange themselves as far apart as possible to minimize repulsion, thus determining the molecule's shape.</p>
+                        <p>Common molecular shapes and their ideal bond angles include:</p>
+                        <ul class="list-disc list-inside ml-4">
+                            <li><strong>Linear</strong>: 2 bonding groups, 0 lone pairs. Bond angle: 180°. Example: CO₂, HCN.</li>
+                            <li><strong>Trigonal Planar</strong>: 3 bonding groups, 0 lone pairs. Bond angle: 120°. Example: BCl₃.</li>
+                            <li><strong>Tetrahedral</strong>: 4 bonding groups, 0 lone pairs. Bond angle: 109.5°. Example: CH₄.</li>
+                            <li><strong>Trigonal Pyramidal</strong>: 3 bonding groups, 1 lone pair. Bond angle: <109.5° (approx. 107°). Example: NH₃.</li>
+                            <li><strong>Bent (or Angular)</strong>: 2 bonding groups, 2 lone pairs (from tetrahedral electron geometry). Bond angle: <109.5° (approx. 104.5° for H₂O). Example: H₂O.</li>
+                            <li><strong>Bent (or Angular)</strong>: 2 bonding groups, 1 lone pair (from trigonal planar electron geometry). Bond angle: <120°. Example: SO₂.</li>
+                        </ul>
+                        <p>(The notes provide a more extensive table with shapes like Trigonal Bipyramidal, Octahedral, etc.)</p>
+                    </div>
+                </div>
+                <div class="qna-item mb-4 p-4 border border-stone-200 rounded-lg shadow-sm">
+                    <button class="accordion-button w-full text-left font-semibold text-teal-600 flex justify-between items-center">
+                        <span>How do you draw Lewis dot structures for neutral elements and ions?</span>
+                        <span class="arrow text-xl transition-transform duration-300 transform">▶</span>
+                    </button>
+                    <div class="accordion-content mt-2 text-stone-700">
+                        <p><strong>For a Neutral Element:</strong></p>
+                        <ol class="list-decimal list-inside ml-4">
+                            <li>Write the chemical symbol of the element.</li>
+                            <li>Determine the number of valence electrons (usually based on its group number for representative elements).</li>
+                            <li>Place dots around the symbol, one at a time on each of the four sides, before pairing them up. Each dot represents one valence electron.</li>
+                        </ol>
+                        <p>Example: Oxygen (O) is in Group 16, so it has 6 valence electrons. Its Lewis dot structure would have the symbol O with 6 dots around it (two pairs and two single dots).</p>
+                        <p><strong>For an Ion:</strong></p>
+                        <ol class="list-decimal list-inside ml-4">
+                            <li>Determine the total number of valence electrons for the atoms involved.</li>
+                            <li>Add electrons for negative charges or subtract electrons for positive charges.</li>
+                            <li>Arrange the atoms with the least electronegative atom usually in the center (hydrogen is always terminal).</li>
+                            <li>Connect atoms with single bonds (one shared pair of electrons).</li>
+                            <li>Distribute the remaining electrons as lone pairs to satisfy the octet rule (or duet rule for hydrogen) for terminal atoms first, then the central atom.</li>
+                            <li>If the central atom does not have an octet, form multiple bonds (double or triple) by moving lone pairs from terminal atoms.</li>
+                            <li>Enclose the entire structure in square brackets and write the charge as a superscript outside the brackets.</li>
+                        </ol>
+                        <p>Example: Ammonium ion (NH₄⁺). N has 5 valence e⁻, each H has 1 (total 4). Positive charge means subtract 1 e⁻. Total = 5 + 4 - 1 = 8 valence e⁻. N is central, bonded to 4 H atoms. Each bond uses 2 e⁻, so 4 bonds use 8 e⁻. N has an octet, each H has a duet. Structure: [H-N(H)(H)-H]⁺ (with N having single bonds to each H).</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="reactions" class="content-section">
+                <h1 class="text-3xl font-bold text-teal-700 mb-6">Chemical Reactions</h1>
+                <p class="text-md text-stone-600 mb-6">Chemical reactions involve the transformation of substances into new ones. This section covers the five main types of chemical reactions (Synthesis, Decomposition, Single Displacement, Double Displacement, Combustion), how to predict their products, balance chemical equations, and understand concepts like oxidation-reduction (redox) reactions, activity series, and solubility rules.</p>
+
+                <div class="qna-item mb-4 p-4 border border-stone-200 rounded-lg shadow-sm">
+                    <button class="accordion-button w-full text-left font-semibold text-teal-600 flex justify-between items-center">
+                        <span>What are the five different types of reaction? Give an example of each.</span>
+                        <span class="arrow text-xl transition-transform duration-300 transform">▶</span>
+                    </button>
+                    <div class="accordion-content mt-2 text-stone-700">
+                        <ol class="list-decimal list-inside ml-4">
+                            <li><strong>Synthesis (Combination)</strong>: Two or more simple substances combine to form a more complex substance. A + B → AB.
+                                <br>Example: $CaO(s) + H_2O(l) \rightarrow Ca(OH)_2(aq)$ (Metallic oxide + water → Base)</li>
+                            <li><strong>Decomposition</strong>: A complex substance breaks down into two or more simpler substances. AB → A + B.
+                                <br>Example: $2H_2O(l) \rightarrow 2H_2(g) + O_2(g)$ (Binary compounds → elements)</li>
+                            <li><strong>Single Displacement (Replacement)</strong>: One element replaces another element in a compound. A + BC → AC + B.
+                                <br>Example: $Mg(s) + 2AgNO_3(aq) \rightarrow Mg(NO_3)_2(aq) + 2Ag(s)$ (Requires activity series to predict if reaction occurs)</li>
+                            <li><strong>Double Displacement (Metathesis)</strong>: The ions of two compounds exchange places in an aqueous solution to form two new compounds. AB + CD → AD + CB.
+                                <br>Example: $Al_2(SO_4)_3(aq) + 6NaOH(aq) \rightarrow 2Al(OH)_3(s) + 3Na_2SO_4(aq)$ (Often forms a precipitate, gas, or water)</li>
+                            <li><strong>Combustion</strong>: A substance reacts rapidly with oxygen (O₂), often producing heat and light. Typically involves hydrocarbons or organic compounds reacting with oxygen to produce carbon dioxide (CO₂) and water (H₂O).
+                                <br>Example: $C_3H_8(g) + 5O_2(g) \rightarrow 3CO_2(g) + 4H_2O(g)$ (Propane combustion)</li>
+                        </ol>
+                    </div>
+                </div>
+                <div class="qna-item mb-4 p-4 border border-stone-200 rounded-lg shadow-sm">
+                    <button class="accordion-button w-full text-left font-semibold text-teal-600 flex justify-between items-center">
+                        <span>What does it mean for an element to be oxidized? Reduced? How do you assign oxidation numbers?</span>
+                        <span class="arrow text-xl transition-transform duration-300 transform">▶</span>
+                    </button>
+                    <div class="accordion-content mt-2 text-stone-700">
+                        <p>In a redox (oxidation-reduction) reaction:</p>
+                        <ul class="list-disc list-inside ml-4">
+                            <li><strong>Oxidation</strong>: An element is oxidized if its oxidation number increases. This corresponds to a loss of electrons (OIL - Oxidation Is Loss).</li>
+                            <li><strong>Reduction</strong>: An element is reduced if its oxidation number decreases. This corresponds to a gain of electrons (RIG - Reduction Is Gain).</li>
+                        </ul>
+                        <p><strong>Rules for Assigning Oxidation Numbers:</strong></p>
+                        <ol class="list-decimal list-inside ml-4">
+                            <li>An uncombined element (e.g., O₂, Fe) = 0.</li>
+                            <li>A monatomic ion = Charge on the ion (e.g., Na⁺ = +1, Cl⁻ = -1).</li>
+                            <li>Fluorine in compounds = –1.</li>
+                            <li>Oxygen in compounds = –2 (Exceptions: in peroxides like H₂O₂, O = –1; in compounds with fluorine, O can be positive).</li>
+                            <li>Hydrogen in compounds = +1 (Exception: in metal hydrides like NaH, H = –1).</li>
+                            <li>Group 1 metals in compounds = +1.</li>
+                            <li>Group 2 metals in compounds = +2.</li>
+                            <li>Aluminum in compounds = +3.</li>
+                            <li>The sum of oxidation numbers in a neutral compound = 0.</li>
+                            <li>The sum of oxidation numbers in a polyatomic ion = Charge on the ion.</li>
+                        </ol>
+                    </div>
+                </div>
+                <div class="qna-item mb-4 p-4 border border-stone-200 rounded-lg shadow-sm">
+                    <button class="accordion-button w-full text-left font-semibold text-teal-600 flex justify-between items-center">
+                        <span>How does the activity series apply to chemical reactions? How do you use solubility rules?</span>
+                        <span class="arrow text-xl transition-transform duration-300 transform">▶</span>
+                    </button>
+                    <div class="accordion-content mt-2 text-stone-700">
+                        <p><strong>Activity Series:</strong></p>
+                        <p>The activity series (for metals or halogens) is used to predict whether a single displacement reaction will occur. A more reactive element (higher on the activity series) will displace a less reactive element from its compound. If the free element is less reactive than the element in the compound, no reaction occurs.</p>
+                        <p><strong>Solubility Rules:</strong></p>
+                        <p>Solubility rules are used to predict whether a precipitate (an insoluble solid) will form in a double displacement reaction occurring in an aqueous solution. After predicting the potential products, you consult the solubility rules (like Table I in the notes) to determine if either product is insoluble in water. If an insoluble product is formed, it is written with an (s) state symbol, indicating a precipitate.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="stoichiometry" class="content-section">
+                <h1 class="text-3xl font-bold text-teal-700 mb-6">Stoichiometry</h1>
+                <p class="text-md text-stone-600 mb-6">Stoichiometry is the quantitative study of reactants and products in chemical reactions. This section covers mole conversions (mass, volume at STP, particles), calculating percent composition, determining empirical and molecular formulas, and solving problems involving limiting reactants and percent yield. Mastering these calculations is essential for practical chemistry.</p>
+                
+                <div class="qna-item mb-4 p-4 border border-stone-200 rounded-lg shadow-sm">
+                    <button class="accordion-button w-full text-left font-semibold text-teal-600 flex justify-between items-center">
+                        <span>How many moles are in a 97.8 gram sample of lithium bromide?</span>
+                        <span class="arrow text-xl transition-transform duration-300 transform">▶</span>
+                    </button>
+                    <div class="accordion-content mt-2 text-stone-700">
+                        <p>To solve this, you use the "Mass ↔ Mole" conversion, using the molar mass of lithium bromide (LiBr).</p>
+                        <ol class="list-decimal list-inside ml-4">
+                            <li>Find the molar mass of LiBr:
+                                <ul class="list-disc list-inside ml-4">
+                                    <li>Li: 6.941 g/mol</li>
+                                    <li>Br: 79.904 g/mol</li>
+                                    <li>Molar Mass of LiBr = 6.941 + 79.904 = 86.845 g/mol</li>
+                                </ul>
+                            </li>
+                            <li>Calculate moles:
+                                <br>Moles = Mass / Molar Mass
+                                <br>Moles = 97.8 g / 86.845 g/mol = 1.126 mol LiBr (approx.)
+                            </li>
+                        </ol>
+                    </div>
+                </div>
+                <div class="qna-item mb-4 p-4 border border-stone-200 rounded-lg shadow-sm">
+                    <button class="accordion-button w-full text-left font-semibold text-teal-600 flex justify-between items-center">
+                        <span>Calculate the empirical formula for a compound that has 46.75 grams of Br and 1.75 grams of carbon.</span>
+                        <span class="arrow text-xl transition-transform duration-300 transform">▶</span>
+                    </button>
+                    <div class="accordion-content mt-2 text-stone-700">
+                        <p><strong>Steps:</strong></p>
+                        <ol class="list-decimal list-inside ml-4">
+                            <li>Convert grams of each element to moles:
+                                <ul class="list-disc list-inside ml-4">
+                                    <li>Moles Br = 46.75 g / 79.904 g/mol (molar mass of Br) = 0.5850 mol Br</li>
+                                    <li>Moles C = 1.75 g / 12.011 g/mol (molar mass of C) = 0.1457 mol C</li>
+                                </ul>
+                            </li>
+                            <li>Divide the mole values by the smallest number of moles (0.1457 mol in this case):
+                                <ul class="list-disc list-inside ml-4">
+                                    <li>For Br: 0.5850 mol / 0.1457 mol ≈ 4.015 ≈ 4</li>
+                                    <li>For C: 0.1457 mol / 0.1457 mol = 1</li>
+                                </ul>
+                            </li>
+                            <li>The resulting numbers are the subscripts in the empirical formula.</li>
+                        </ol>
+                        <p><strong>Empirical Formula</strong>: CBr₄</p>
+                    </div>
+                </div>
+                 <div class="qna-item mb-4 p-4 border border-stone-200 rounded-lg shadow-sm">
+                    <button class="accordion-button w-full text-left font-semibold text-teal-600 flex justify-between items-center">
+                        <span>A compound is found to contain 40.0 % carbon, 6.7 % hydrogen and 53.3 % oxygen and the molar mass is 60 g/mol. What is the molecular formula?</span>
+                        <span class="arrow text-xl transition-transform duration-300 transform">▶</span>
+                    </button>
+                    <div class="accordion-content mt-2 text-stone-700">
+                        <p><strong>Step 1: Determine the Empirical Formula</strong></p>
+                        <ol class="list-decimal list-inside ml-2">
+                            <li>Assume a 100 g sample. This means you have:
+                                <ul class="list-disc list-inside ml-4">
+                                    <li>40.0 g Carbon (C)</li>
+                                    <li>6.7 g Hydrogen (H)</li>
+                                    <li>53.3 g Oxygen (O)</li>
+                                </ul>
+                            </li>
+                            <li>Convert grams to moles for each element:
+                                <ul class="list-disc list-inside ml-4">
+                                    <li>Moles C = 40.0 g / 12.011 g/mol = 3.330 mol C</li>
+                                    <li>Moles H = 6.7 g / 1.008 g/mol = 6.647 mol H</li>
+                                    <li>Moles O = 53.3 g / 15.999 g/mol = 3.331 mol O</li>
+                                </ul>
+                            </li>
+                            <li>Divide each mole value by the smallest number of moles (approx. 3.330 mol):
+                                <ul class="list-disc list-inside ml-4">
+                                    <li>C: 3.330 / 3.330 = 1</li>
+                                    <li>H: 6.647 / 3.330 ≈ 2</li>
+                                    <li>O: 3.331 / 3.330 ≈ 1</li>
+                                </ul>
+                            </li>
+                            <li>The empirical formula is CH₂O.</li>
+                        </ol>
+                        <p><strong>Step 2: Determine the Molecular Formula</strong></p>
+                        <ol class="list-decimal list-inside ml-2">
+                            <li>Calculate the molar mass of the empirical formula (CH₂O):
+                                <br>Molar Mass (CH₂O) = 12.011 (C) + 2 * 1.008 (H) + 15.999 (O) = 30.026 g/mol.
+                            </li>
+                            <li>Divide the given molar mass of the compound by the empirical formula mass:
+                                <br>Ratio = (Molar Mass of Compound) / (Empirical Formula Mass)
+                                <br>Ratio = 60 g/mol / 30.026 g/mol ≈ 2
+                            </li>
+                            <li>Multiply the subscripts in the empirical formula by this ratio (2):
+                                <br>Molecular Formula = (CH₂O)₂ = C₂H₄O₂
+                            </li>
+                        </ol>
+                        <p><strong>Molecular Formula</strong>: C₂H₄O₂</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="states_imf" class="content-section">
+                <h1 class="text-3xl font-bold text-teal-700 mb-6">States of Matter & Intermolecular Forces</h1>
+                 <p class="text-md text-stone-600 mb-6">This section examines the different states of matter (solid, liquid, gas) and the forces that exist between molecules, known as intermolecular forces (IMFs). Understanding IMFs like London dispersion forces, dipole-dipole interactions, and hydrogen bonding is key to explaining many physical properties of substances, such as boiling points and viscosity.</p>
+                <div class="qna-item mb-4 p-4 border border-stone-200 rounded-lg shadow-sm">
+                    <button class="accordion-button w-full text-left font-semibold text-teal-600 flex justify-between items-center">
+                        <span>Differentiate between and know the relative strengths of intermolecular forces.</span>
+                        <span class="arrow text-xl transition-transform duration-300 transform">▶</span>
+                    </button>
+                    <div class="accordion-content mt-2 text-stone-700">
+                        <p>Intermolecular forces (IMFs) are attractions between molecules. Their relative strengths are generally:</p>
+                        <ol class="list-decimal list-inside ml-4">
+                            <li><strong>Ion-Dipole Forces</strong>: Strongest among those listed if an ion is involved. Attraction between an ion and a polar molecule. (e.g., NaCl dissolved in H₂O).</li>
+                            <li><strong>Hydrogen Bonding</strong>: A special, strong type of dipole-dipole interaction. Occurs when hydrogen is bonded to a highly electronegative atom (Nitrogen, Oxygen, or Fluorine - N, O, F) and is attracted to an N, O, or F atom in a nearby molecule. (e.g., between H₂O molecules).</li>
+                            <li><strong>Dipole-Dipole Forces</strong>: Attraction between polar molecules (molecules with permanent dipoles). Weaker than hydrogen bonds. (e.g., between HCl molecules).</li>
+                            <li><strong>London Dispersion Forces (LDF)</strong>: Weakest type of IMF. Present in ALL molecules (polar and nonpolar). Caused by temporary, induced dipoles due to the constant motion of electrons. Strength increases with the size of the molecule (more electrons means greater polarizability).</li>
+                        </ol>
+                        <p>So, in general: Ion-Dipole > Hydrogen Bonding > Dipole-Dipole > London Dispersion Forces.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="solutions" class="content-section">
+                 <h1 class="text-3xl font-bold text-teal-700 mb-6">Solutions & Concentrations</h1>
+                 <p class="text-md text-stone-600 mb-6">Solutions are homogeneous mixtures. This section focuses on understanding solutes and solvents, different ways to express concentration (molarity, molality), the dilution process, and colligative properties like freezing point depression and boiling point elevation, which depend on the concentration of solute particles.</p>
+                <div class="qna-item mb-4 p-4 border border-stone-200 rounded-lg shadow-sm">
+                    <button class="accordion-button w-full text-left font-semibold text-teal-600 flex justify-between items-center">
+                        <span>Calculate concentration using molarity and molality.</span>
+                        <span class="arrow text-xl transition-transform duration-300 transform">▶</span>
+                    </button>
+                    <div class="accordion-content mt-2 text-stone-700">
+                        <p><strong>Molarity (M)</strong>: Moles of solute per liter of solution.</p>
+                        <p class="math">M = moles of solute / Liters of solution</p>
+                        <p>Example from notes: If you need to make 375 mL of 1.2 M sodium hydroxide (NaOH), you need 18 grams of NaOH. (Calculation: 1.2 mol/L * 0.375 L = 0.45 mol NaOH; 0.45 mol * 40.00 g/mol NaOH = 18 g NaOH).</p>
+                        
+                        <p><strong>Molality (m)</strong>: Moles of solute per kilogram of solvent.</p>
+                        <p class="math">m = moles of solute / kilograms of solvent</p>
+                        <p>Example from notes: Calculate molality of 422 grams of sodium chloride (NaCl) diluted in 475 mL H₂O (density of water ≈ 1 g/mL, so 475 mL H₂O ≈ 0.475 kg H₂O).
+                        <br>Moles NaCl = 422 g / 58.44 g/mol = 7.22 mol NaCl.
+                        <br>Molality = 7.22 mol / 0.475 kg = 15.2 m NaCl (approx.).</p>
+                    </div>
+                </div>
+                <div class="qna-item mb-4 p-4 border border-stone-200 rounded-lg shadow-sm">
+                    <button class="accordion-button w-full text-left font-semibold text-teal-600 flex justify-between items-center">
+                        <span>Apply the equations for freezing point depression and boiling point elevation.</span>
+                        <span class="arrow text-xl transition-transform duration-300 transform">▶</span>
+                    </button>
+                    <div class="accordion-content mt-2 text-stone-700">
+                        <p><strong>Freezing Point Depression</strong>: The presence of a solute lowers the freezing point of a solvent.</p>
+                        <p class="math">ΔT_f = i \cdot K_f \cdot m</p>
+                        <ul class="list-disc list-inside ml-4">
+                            <li><span class="math">ΔT_f</span>: Change in freezing point (T<sub>f,solvent</sub> - T<sub>f,solution</sub>).</li>
+                            <li><span class="math">i</span>: van 't Hoff factor (number of particles the solute dissociates into; i=1 for non-electrolytes).</li>
+                            <li><span class="math">K_f</span>: Freezing point depression constant of the solvent (for water, <span class="math">K_f</span> = 1.86 °C·kg/mol).</li>
+                            <li><span class="math">m</span>: Molality of the solution.</li>
+                        </ul>
+                        <p><strong>Boiling Point Elevation</strong>: The presence of a solute raises the boiling point of a solvent.</p>
+                        <p class="math">ΔT_b = i \cdot K_b \cdot m</p>
+                         <ul class="list-disc list-inside ml-4">
+                            <li><span class="math">ΔT_b</span>: Change in boiling point (T<sub>b,solution</sub> - T<sub>b,solvent</sub>).</li>
+                            <li><span class="math">i</span>: van 't Hoff factor.</li>
+                            <li><span class="math">K_b</span>: Boiling point elevation constant of the solvent (for water, <span class="math">K_b</span> = 0.512 °C·kg/mol).</li>
+                            <li><span class="math">m</span>: Molality of the solution.</li>
+                        </ul>
+                        <p>The notes provide examples for C₆H₁₂O₆ (a non-electrolyte, so i=1) and NaCl (an electrolyte, i=2 as it dissociates into Na⁺ and Cl⁻).</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="acids_bases" class="content-section">
+                <h1 class="text-3xl font-bold text-teal-700 mb-6">Acids, Bases & pH</h1>
+                <p class="text-md text-stone-600 mb-6">This section covers the properties and definitions of acids and bases (Arrhenius, Brønsted-Lowry), the concept of pH and pOH for measuring acidity/basicity, strong vs. weak acids/bases, and acid-base neutralization reactions including titrations. Understanding conjugate acid-base pairs is also important.</p>
+                <div class="qna-item mb-4 p-4 border border-stone-200 rounded-lg shadow-sm">
+                    <button class="accordion-button w-full text-left font-semibold text-teal-600 flex justify-between items-center">
+                        <span>Identify Arrhenius Acids and Bases. Identify Brønsted-Lowry Acids and Bases.</span>
+                        <span class="arrow text-xl transition-transform duration-300 transform">▶</span>
+                    </button>
+                    <div class="accordion-content mt-2 text-stone-700">
+                        <p><strong>Arrhenius Definition:</strong></p>
+                        <ul class="list-disc list-inside ml-4">
+                            <li><strong>Arrhenius Acid</strong>: A substance that generates H⁺ ions (protons) when dissolved in water. (e.g., HCl, CH₃COOH).</li>
+                            <li><strong>Arrhenius Base</strong>: A substance that generates OH⁻ ions (hydroxide ions) when dissolved in water. (e.g., NaOH).</li>
+                        </ul>
+                        <p><strong>Brønsted-Lowry Definition:</strong></p>
+                        <ul class="list-disc list-inside ml-4">
+                            <li><strong>Brønsted-Lowry Acid</strong>: A proton (H⁺) donor.</li>
+                            <li><strong>Brønsted-Lowry Base</strong>: A proton (H⁺) acceptor. (This definition is broader; bases do not need to contain OH⁻, e.g., NH₃).</li>
+                        </ul>
+                    </div>
+                </div>
+                 <div class="qna-item mb-4 p-4 border border-stone-200 rounded-lg shadow-sm">
+                    <button class="accordion-button w-full text-left font-semibold text-teal-600 flex justify-between items-center">
+                        <span>Be able to calculate pH, pOH, [H⁺], [OH⁻].</span>
+                        <span class="arrow text-xl transition-transform duration-300 transform">▶</span>
+                    </button>
+                    <div class="accordion-content mt-2 text-stone-700">
+                        <p>Key relationships at 25°C:</p>
+                        <ul class="list-disc list-inside ml-4">
+                            <li>Ion product of water: <span class="math">K_w = [H⁺][OH⁻] = 1.0 \times 10^{-14}</span></li>
+                            <li>pH definition: <span class="math">pH = -log[H⁺]</span></li>
+                            <li>pOH definition: <span class="math">pOH = -log[OH⁻]</span></li>
+                            <li>Relationship between pH and pOH: <span class="math">pH + pOH = 14</span></li>
+                        </ul>
+                        <p>From these, you can calculate any of the four values if one is known:</p>
+                        <ul class="list-disc list-inside ml-4">
+                            <li>Given [H⁺], find pH: <span class="math">pH = -log[H⁺]</span></li>
+                            <li>Given pH, find [H⁺]: <span class="math">[H⁺] = 10^{-pH}</span></li>
+                            <li>Given [OH⁻], find pOH: <span class="math">pOH = -log[OH⁻]</span></li>
+                            <li>Given pOH, find [OH⁻]: <span class="math">[OH⁻] = 10^{-pOH}</span></li>
+                            <li>Given [H⁺], find [OH⁻]: <span class="math">[OH⁻] = K_w / [H⁺] = (1.0 \times 10^{-14}) / [H⁺]</span></li>
+                            <li>Given [OH⁻], find [H⁺]: <span class="math">[H⁺] = K_w / [OH⁻] = (1.0 \times 10^{-14}) / [OH⁻]</span></li>
+                            <li>Given pH, find pOH: <span class="math">pOH = 14 - pH</span></li>
+                            <li>Given pOH, find pH: <span class="math">pH = 14 - pOH</span></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div id="thermo_kinetics" class="content-section">
+                 <h1 class="text-3xl font-bold text-teal-700 mb-6">Thermodynamics & Kinetics</h1>
+                <p class="text-md text-stone-600 mb-6">Thermodynamics deals with energy changes in chemical reactions (enthalpy, Hess's Law, calorimetry), while kinetics studies the rates and mechanisms of reactions (collision theory, activation energy, factors affecting reaction rate). This section explores these concepts, helping you understand why and how fast reactions occur.</p>
+                 <div class="qna-item mb-4 p-4 border border-stone-200 rounded-lg shadow-sm">
+                    <button class="accordion-button w-full text-left font-semibold text-teal-600 flex justify-between items-center">
+                        <span>Be able to distinguish between an endothermic reaction and exothermic reaction.</span>
+                        <span class="arrow text-xl transition-transform duration-300 transform">▶</span>
+                    </button>
+                    <div class="accordion-content mt-2 text-stone-700">
+                        <ul class="list-disc list-inside ml-4">
+                            <li><strong>Endothermic Reaction</strong>: A reaction that absorbs heat energy from its surroundings. The enthalpy change (<span class="math">ΔH</span>) for an endothermic reaction is positive (<span class="math">ΔH > 0</span>). The products have higher enthalpy than the reactants.</li>
+                            <li><strong>Exothermic Reaction</strong>: A reaction that releases heat energy into its surroundings. The enthalpy change (<span class="math">ΔH</span>) for an exothermic reaction is negative (<span class="math">ΔH < 0</span>). The products have lower enthalpy than the reactants.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="qna-item mb-4 p-4 border border-stone-200 rounded-lg shadow-sm">
+                    <button class="accordion-button w-full text-left font-semibold text-teal-600 flex justify-between items-center">
+                        <span>What is collision theory? What factors contribute to an effective collision?</span>
+                        <span class="arrow text-xl transition-transform duration-300 transform">▶</span>
+                    </button>
+                    <div class="accordion-content mt-2 text-stone-700">
+                        <p><strong>Collision Theory</strong> states that for a chemical reaction to occur, reactant particles (atoms, ions, or molecules) must collide with each other.</p>
+                        <p>However, not all collisions result in a reaction. For a collision to be <strong>effective</strong> (i.e., lead to the formation of products), two main factors must be met:</p>
+                        <ol class="list-decimal list-inside ml-4">
+                            <li><strong>Sufficient Energy</strong>: The colliding particles must possess a minimum amount of kinetic energy, known as the activation energy (<span class="math">E_a</span>). This energy is needed to break existing bonds and allow new bonds to form.</li>
+                            <li><strong>Correct Orientation</strong>: The colliding particles must be oriented in space in a way that allows the necessary bonds to break and form. If they collide with an improper orientation, they will likely just bounce off each other, even if they have sufficient energy.</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+
+            <div id="gases" class="content-section">
+                 <h1 class="text-3xl font-bold text-teal-700 mb-6">Gases & Gas Laws</h1>
+                 <p class="text-md text-stone-600 mb-6">Gases have unique properties due to the large spaces between particles and their constant motion. This section covers the Kinetic-Molecular Theory (KMT) of gases and various gas laws (Boyle's, Charles's, Gay-Lussac's, Combined, Ideal, Dalton's Law of Partial Pressures, Graham's Law) that describe the relationships between pressure, volume, temperature, and amount of gas.</p>
+                <div class="qna-item mb-4 p-4 border border-stone-200 rounded-lg shadow-sm">
+                    <button class="accordion-button w-full text-left font-semibold text-teal-600 flex justify-between items-center">
+                        <span>Apply basic concepts of KMT to gases.</span>
+                        <span class="arrow text-xl transition-transform duration-300 transform">▶</span>
+                    </button>
+                    <div class="accordion-content mt-2 text-stone-700">
+                        <p>The <strong>Kinetic-Molecular Theory (KMT)</strong> of gases describes the behavior of ideal gases based on the following assumptions:</p>
+                        <ol class="list-decimal list-inside ml-4">
+                            <li><strong>Particle Size and Spacing</strong>: Gas molecules are considered to be small particles with negligible volume compared to the large empty spaces between them.</li>
+                            <li><strong>Constant, Random Motion</strong>: Gas molecules are in constant, rapid, and random motion, moving in straight lines until they collide with other particles or the walls of their container.</li>
+                            <li><strong>Collisions</strong>: Collisions between gas molecules and between molecules and the container walls are perfectly elastic. This means that kinetic energy is conserved during collisions (though it can be transferred between particles).</li>
+                            <li><strong>Negligible Intermolecular Forces</strong>: There are essentially no attractive or repulsive forces between gas molecules. They act independently of one another.</li>
+                            <li><strong>Temperature and Kinetic Energy</strong>: The average kinetic energy of gas molecules is directly proportional to the absolute temperature (in Kelvin) of the gas. At a given temperature, all gases have the same average kinetic energy.</li>
+                        </ol>
+                    </div>
+                </div>
+                <div class="qna-item mb-4 p-4 border border-stone-200 rounded-lg shadow-sm">
+                    <button class="accordion-button w-full text-left font-semibold text-teal-600 flex justify-between items-center">
+                        <span>Be able to use ideal, Charles, Boyle, Gay-Lussac law to calculate P,V,n,T.</span>
+                        <span class="arrow text-xl transition-transform duration-300 transform">▶</span>
+                    </button>
+                    <div class="accordion-content mt-2 text-stone-700">
+                        <p>These laws describe the relationships between pressure (P), volume (V), temperature (T in Kelvin), and the amount of gas (n in moles).</p>
+                        <ul class="list-disc list-inside ml-4">
+                            <li><strong>Boyle's Law</strong> (constant T and n): <span class="math">P_1V_1 = P_2V_2</span>. Pressure and volume are inversely proportional.</li>
+                            <li><strong>Charles's Law</strong> (constant P and n): <span class="math">V_1/T_1 = V_2/T_2</span>. Volume and absolute temperature are directly proportional.</li>
+                            <li><strong>Gay-Lussac's Law</strong> (constant V and n): <span class="math">P_1/T_1 = P_2/T_2</span>. Pressure and absolute temperature are directly proportional.</li>
+                            <li><strong>Combined Gas Law</strong> (constant n): <span class="math">(P_1V_1)/T_1 = (P_2V_2)/T_2</span>. Combines Boyle's, Charles's, and Gay-Lussac's laws.</li>
+                            <li><strong>Ideal Gas Law</strong>: <span class="math">PV = nRT</span>. Relates all four variables. R is the ideal gas constant (e.g., 0.0821 L·atm/mol·K or 8.314 J/mol·K, depending on units of P and V).</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            </main>
+    </div>
+
+    <script>
+        const navButtons = document.querySelectorAll('.nav-button');
+        const contentSections = document.querySelectorAll('.content-section');
+        const accordionButtons = document.querySelectorAll('.accordion-button');
+        const searchInput = document.getElementById('searchInput');
+        const qnaItems = document.querySelectorAll('.qna-item');
+
+        function showSection(targetId) {
+            contentSections.forEach(section => {
+                section.classList.remove('active');
+                if (section.id === targetId) {
+                    section.classList.add('active');
+                }
+            });
+        }
+
+        navButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const targetId = button.dataset.target;
+                showSection(targetId);
+                 // Highlight active button
+                navButtons.forEach(btn => btn.classList.remove('bg-teal-600', 'text-white'));
+                button.classList.add('bg-teal-600', 'text-white');
+            });
+        });
+        
+        // Set initial active button
+        const initialActiveButton = document.querySelector('.nav-button[data-target="home"]');
+        if(initialActiveButton) {
+            initialActiveButton.classList.add('bg-teal-600', 'text-white');
+        }
+
+
+        accordionButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const content = button.nextElementSibling;
+                button.classList.toggle('open');
+                if (content.style.display === "block") {
+                    content.style.display = "none";
+                } else {
+                    content.style.display = "block";
+                }
+            });
+        });
+
+        searchInput.addEventListener('keyup', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            
+            if (searchTerm.length > 0) {
+                // If searching, hide all sections initially except a "search results" placeholder or just filter items directly
+                // For simplicity here, we'll just filter items and assume user is in a section or we show all matching items
+                // A more sophisticated approach might involve a dedicated search results view.
+                showSection('search-results-placeholder'); // You'd need to create this section or handle display differently
+            } else {
+                // If search is cleared, show the home section or last active section
+                 const currentActive = document.querySelector('.nav-button.bg-teal-600');
+                 if (currentActive) {
+                    showSection(currentActive.dataset.target);
+                 } else {
+                    showSection('home');
+                 }
+            }
+
+            qnaItems.forEach(item => {
+                const questionText = item.querySelector('.accordion-button span:first-child').textContent.toLowerCase();
+                const answerTextElement = item.querySelector('.accordion-content');
+                const answerText = answerTextElement ? answerTextElement.textContent.toLowerCase() : "";
+
+                if (questionText.includes(searchTerm) || answerText.includes(searchTerm)) {
+                    item.style.display = ""; // Show item
+                    // Ensure parent section is visible if an item matches
+                    let parentSection = item.closest('.content-section');
+                    if (parentSection && !parentSection.classList.contains('active') && searchTerm.length > 0) {
+                        // This logic can get complex; for now, let's assume filtering happens within the active section or globally
+                        // For a global search, you'd collect all matching items and display them, perhaps by activating their sections.
+                    }
+                } else {
+                    item.style.display = "none"; // Hide item
+                }
+            });
+
+            // If search term is empty, restore visibility based on active nav button
+            if (searchTerm === "") {
+                 qnaItems.forEach(item => item.style.display = ""); // Reset display for all
+                 const currentActiveNav = document.querySelector('.nav-button.bg-teal-600');
+                 if (currentActiveNav) {
+                    showSection(currentActiveNav.dataset.target); // Re-apply section visibility
+                 } else {
+                    showSection('home'); // Default to home
+                 }
+            }
+        });
+        
+        // Initialize with the home section active
+        showSection('home');
+
+        // Chart.js examples for periodic trends
+        function createTrendChart(canvasId, label, dataAcross, dataDown) {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            if (window[canvasId + 'ChartInstance']) {
+                window[canvasId + 'ChartInstance'].destroy();
+            }
+            window[canvasId + 'ChartInstance'] = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Across a Period', 'Down a Group'],
+                    datasets: [{
+                        label: label + ' Trend',
+                        data: [dataAcross > 0 ? 1 : -1, dataDown > 0 ? 1 : -1], // Use 1 for increase, -1 for decrease for visual direction
+                        backgroundColor: [
+                            dataAcross > 0 ? 'rgba(75, 192, 192, 0.6)' : 'rgba(255, 99, 132, 0.6)', // Teal for increase, Red for decrease
+                            dataDown > 0 ? 'rgba(75, 192, 192, 0.6)' : 'rgba(255, 99, 132, 0.6)'
+                        ],
+                        borderColor: [
+                            dataAcross > 0 ? 'rgba(75, 192, 192, 1)' : 'rgba(255, 99, 132, 1)',
+                            dataDown > 0 ? 'rgba(75, 192, 192, 1)' : 'rgba(255, 99, 132, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            ticks: {
+                                callback: function(value) {
+                                    if (value === 1) return 'Increases';
+                                    if (value === -1) return 'Decreases';
+                                    return '';
+                                },
+                                stepSize: 1
+                            },
+                            min: -1.5,
+                            max: 1.5
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let trend = context.raw > 0 ? 'Increases' : 'Decreases';
+                                    return `${context.dataset.label}: ${trend}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Data: 1 for increases, -1 for decreases
+        // Atomic Radius: Decreases across, Increases down
+        if (document.getElementById('atomicRadiusChart')) {
+            createTrendChart('atomicRadiusChart', 'Atomic Radius', -1, 1);
+        }
+        // Electronegativity: Increases across, Decreases down
+        if (document.getElementById('electronegativityChart')) {
+            createTrendChart('electronegativityChart', 'Electronegativity', 1, -1);
+        }
+        // Ionization Energy: Increases across, Decreases down
+        if (document.getElementById('ionizationEnergyChart')) {
+            createTrendChart('ionizationEnergyChart', 'Ionization Energy', 1, -1);
+        }
+
+    </script>
+</body>
+</html>
