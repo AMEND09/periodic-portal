@@ -6,6 +6,19 @@
     <title>Interactive Chemistry Study Guide</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script type="text/javascript" id="MathJax-script" async
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+    </script>
+    <script>
+        MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']]
+            },
+            svg: {
+                fontCache: 'global'
+            }
+        };
+    </script>
     <!-- Visualization & Content Choices:
         - Q&A: HTML accordions (JS for toggle) for clarity and space-saving. Goal: Inform.
         - Periodic Trends (Atomic Radius, Electronegativity, Ionization Energy): Illustrative Bar Charts (Chart.js Canvas). Goal: Compare/Show Change. Interaction: Tooltips. Justification: Visual aid for trends.
@@ -64,10 +77,6 @@
         }
         ::-webkit-scrollbar-thumb:hover {
             background: #94a3b8; /* Tailwind gray-400 */
-        }
-        .math {
-            font-family: 'Times New Roman', Times, serif;
-            font-style: italic;
         }
     </style>
 </head>
@@ -129,9 +138,9 @@
                     </button>
                     <div class="accordion-content mt-2 text-stone-700">
                         <ul class="list-disc list-inside ml-4">
-                            <li><strong>Cation (Positive Ion)</strong>: Element name + "ion" (e.g., Na⁺: Sodium ion).</li>
-                            <li><strong>Anion (Negative Ion)</strong>: Change element ending to "ide" (e.g., Cl⁻: Chloride).</li>
-                            <li><strong>Multivalent Ions</strong>: Use Roman numerals in parentheses after the element name to indicate the charge (e.g., Chromium(II) iodide for CrI₂). Latin affixes (-ic for higher charge, -ous for lower charge) can also be used.</li>
+                            <li><strong>Cation (Positive Ion)</strong>: Element name + "ion" (e.g., Na$^+$: Sodium ion).</li>
+                            <li><strong>Anion (Negative Ion)</strong>: Change element ending to "ide" (e.g., Cl$^- $: Chloride).</li>
+                            <li><strong>Multivalent Ions</strong>: Use Roman numerals in parentheses after the element name to indicate the charge (e.g., Chromium(II) iodide for CrI$_2$). Latin affixes (-ic for higher charge, -ous for lower charge) can also be used.</li>
                         </ul>
                     </div>
                 </div>
@@ -143,8 +152,8 @@
                     </button>
                     <div class="accordion-content mt-2 text-stone-700">
                         <ul class="list-disc list-inside ml-4">
-                            <li><strong>Ionic Compounds</strong>: Name the cation first, then the anion (dropping "ion" from the anion's name). For polyatomic ions, name the cation then the polyatomic ion. Example: NaCl is Sodium chloride. CaSO₄ is Calcium sulfate.</li>
-                            <li><strong>Covalent Compounds (Molecules)</strong>: Use prefixes to indicate the number of atoms of each element. Both elements in the compound need a prefix unless the first one is "mono-". Example: H₂O is Dihydrogen monoxide. CO₂ is Carbon dioxide.</li>
+                            <li><strong>Ionic Compounds</strong>: Name the cation first, then the anion (dropping "ion" from the anion's name). For polyatomic ions, name the cation then the polyatomic ion. Example: NaCl is Sodium chloride. CaSO$_4$ is Calcium sulfate.</li>
+                            <li><strong>Covalent Compounds (Molecules)</strong>: Use prefixes to indicate the number of atoms of each element. Both elements in the compound need a prefix unless the first one is "mono-". Example: H$_2$O is Dihydrogen monoxide. CO$_2$ is Carbon dioxide.</li>
                         </ul>
                     </div>
                 </div>
@@ -157,12 +166,12 @@
                     <div class="accordion-content mt-2 text-stone-700">
                         <p>These are all <strong>Changes of State</strong>:</p>
                         <ul class="list-disc list-inside ml-4">
-                            <li><strong>Melting (Solid → Liquid)</strong>: Requires energy (endothermic).</li>
-                            <li><strong>Vaporizing (Liquid → Gas)</strong>: Requires energy (endothermic). This includes boiling (rapid vaporization throughout the liquid at a specific temperature) and evaporation (slower vaporization at the surface below the boiling point).</li>
-                            <li><strong>Freezing (Liquid → Solid)</strong>: Releases energy (exothermic).</li>
-                            <li><strong>Condensation (Gas → Liquid)</strong>: Releases energy (exothermic).</li>
-                            <li><strong>Sublimation (Solid → Gas)</strong>: Requires energy (endothermic).</li>
-                            <li><strong>Deposition (Gas → Solid)</strong>: Releases energy (exothermic).</li>
+                            <li><strong>Melting (Solid $\rightarrow$ Liquid)</strong>: Requires energy (endothermic).</li>
+                            <li><strong>Vaporizing (Liquid $\rightarrow$ Gas)</strong>: Requires energy (endothermic). This includes boiling (rapid vaporization throughout the liquid at a specific temperature) and evaporation (slower vaporization at the surface below the boiling point).</li>
+                            <li><strong>Freezing (Liquid $\rightarrow$ Solid)</strong>: Releases energy (exothermic).</li>
+                            <li><strong>Condensation (Gas $\rightarrow$ Liquid)</strong>: Releases energy (exothermic).</li>
+                            <li><strong>Sublimation (Solid $\rightarrow$ Gas)</strong>: Requires energy (endothermic).</li>
+                            <li><strong>Deposition (Gas $\rightarrow$ Solid)</strong>: Releases energy (exothermic).</li>
                         </ul>
                     </div>
                 </div>
@@ -199,7 +208,7 @@
                         <span class="arrow text-xl transition-transform duration-300 transform">▶</span>
                     </button>
                     <div class="accordion-content mt-2 text-stone-700">
-                        <p>Use the formula: <span class="math">D = m/v</span> (Density = mass / volume). The notes also provide rearranged forms: <span class="math">m = Dv</span> and <span class="math">v = m/D</span>.</p>
+                        <p>Use the formula: $D = m/v$ (Density = mass / volume). The notes also provide rearranged forms: $m = Dv$ and $v = m/D$.</p>
                     </div>
                 </div>
 
@@ -278,12 +287,12 @@
                             <li><strong>Pauli Exclusion Principle</strong>: A maximum of two electrons can occupy a single atomic orbital, and these two electrons must have opposite spins.</li>
                             <li><strong>Hund's Rule</strong>: Electrons will individually occupy each orbital within a subshell before doubling up in any one orbital. When occupying orbitals of equal energy, electrons will have parallel spins.</li>
                         </ul>
-                        <p>In the configuration <strong>[Ne] 3s²3p³</strong>:</p>
+                        <p>In the configuration <strong>[Ne] 3s$^2$3p$^3$</strong>:</p>
                         <ul class="list-disc list-inside ml-4">
                             <li><strong>[Ne]</strong>: Represents the electron configuration of Neon, the preceding noble gas (noble gas shorthand).</li>
                             <li><strong>Coefficients (large numbers like 3)</strong>: Represent the principal <strong>energy level</strong> (shell).</li>
                             <li><strong>Letters (s, p)</strong>: Represent the type of <strong>sublevel</strong> (orbital shape).</li>
-                            <li><strong>Superscripts (small numbers like ² and ³)</strong>: Represent the <strong>number of electrons</strong> in that specific sublevel.</li>
+                            <li><strong>Superscripts (small numbers like 2 and 3)</strong>: Represent the <strong>number of electrons</strong> in that specific sublevel.</li>
                         </ul>
                     </div>
                 </div>
@@ -421,15 +430,15 @@
                         <p><strong>Bond Polarity:</strong></p>
                         <ul class="list-disc list-inside ml-4">
                             <li><strong>Non-Polar Covalent Bond</strong>: Electrons are shared equally between two atoms. This occurs when the two atoms have very similar or identical electronegativities (difference typically 0.0 – 0.4).</li>
-                            <li><strong>Polar Covalent Bond</strong>: Electrons are shared unequally between two atoms due to a significant difference in their electronegativities (difference typically >0.4 – 2.0). The atom with higher electronegativity pulls the shared electrons closer, creating a partial negative charge (δ-) on that atom and a partial positive charge (δ+) on the other.</li>
+                            <li><strong>Polar Covalent Bond</strong>: Electrons are shared unequally between two atoms due to a significant difference in their electronegativities (difference typically >0.4 – 2.0). The atom with higher electronegativity pulls the shared electrons closer, creating a partial negative charge ($\delta$-) on that atom and a partial positive charge ($\delta$+) on the other.</li>
                         </ul>
                         <p><strong>Molecule Polarity:</strong></p>
                         <p>A molecule is polar (a dipole) if it meets two conditions:</p>
                         <ol class="list-decimal list-inside ml-4">
                             <li>It must contain polar bonds.</li>
-                            <li>The molecular shape must be asymmetrical, such that the bond dipoles do not cancel each other out. Symmetrical molecules with polar bonds can be nonpolar if the dipoles cancel (e.g., CO₂).</li>
+                            <li>The molecular shape must be asymmetrical, such that the bond dipoles do not cancel each other out. Symmetrical molecules with polar bonds can be nonpolar if the dipoles cancel (e.g., CO$_2$).</li>
                         </ol>
-                        <p>Example: H₂O is polar (bent shape, asymmetrical arrangement of polar O-H bonds). CO₂ is nonpolar (linear shape, symmetrical arrangement of polar C=O bonds, dipoles cancel).</p>
+                        <p>Example: H$_2$O is polar (bent shape, asymmetrical arrangement of polar O-H bonds). CO$_2$ is nonpolar (linear shape, symmetrical arrangement of polar C=O bonds, dipoles cancel).</p>
                     </div>
                 </div>
                 <div class="qna-item mb-4 p-4 border border-stone-200 rounded-lg shadow-sm">
@@ -441,12 +450,12 @@
                         <p><strong>VSEPR</strong> stands for <strong>V</strong>alence <strong>S</strong>hell <strong>E</strong>lectron <strong>P</strong>air <strong>R</strong>epulsion theory. It states that electron pairs (both bonding pairs and lone pairs) around a central atom will arrange themselves as far apart as possible to minimize repulsion, thus determining the molecule's shape.</p>
                         <p>Common molecular shapes and their ideal bond angles include:</p>
                         <ul class="list-disc list-inside ml-4">
-                            <li><strong>Linear</strong>: 2 bonding groups, 0 lone pairs. Bond angle: 180°. Example: CO₂, HCN.</li>
-                            <li><strong>Trigonal Planar</strong>: 3 bonding groups, 0 lone pairs. Bond angle: 120°. Example: BCl₃.</li>
-                            <li><strong>Tetrahedral</strong>: 4 bonding groups, 0 lone pairs. Bond angle: 109.5°. Example: CH₄.</li>
-                            <li><strong>Trigonal Pyramidal</strong>: 3 bonding groups, 1 lone pair. Bond angle: <109.5° (approx. 107°). Example: NH₃.</li>
-                            <li><strong>Bent (or Angular)</strong>: 2 bonding groups, 2 lone pairs (from tetrahedral electron geometry). Bond angle: <109.5° (approx. 104.5° for H₂O). Example: H₂O.</li>
-                            <li><strong>Bent (or Angular)</strong>: 2 bonding groups, 1 lone pair (from trigonal planar electron geometry). Bond angle: <120°. Example: SO₂.</li>
+                            <li><strong>Linear</strong>: 2 bonding groups, 0 lone pairs. Bond angle: 180$^\circ$. Example: CO$_2$, HCN.</li>
+                            <li><strong>Trigonal Planar</strong>: 3 bonding groups, 0 lone pairs. Bond angle: 120$^\circ$. Example: BCl$_3$.</li>
+                            <li><strong>Tetrahedral</strong>: 4 bonding groups, 0 lone pairs. Bond angle: 109.5$^\circ$. Example: CH$_4$.</li>
+                            <li><strong>Trigonal Pyramidal</strong>: 3 bonding groups, 1 lone pair. Bond angle: <109.5$^\circ$ (approx. 107$^\circ$). Example: NH$_3$.</li>
+                            <li><strong>Bent (or Angular)</strong>: 2 bonding groups, 2 lone pairs (from tetrahedral electron geometry). Bond angle: <109.5$^\circ$ (approx. 104.5$^\circ$ for H$_2$O). Example: H$_2$O.</li>
+                            <li><strong>Bent (or Angular)</strong>: 2 bonding groups, 1 lone pair (from trigonal planar electron geometry). Bond angle: <120$^\circ$. Example: SO$_2$.</li>
                         </ul>
                         <p>(The notes provide a more extensive table with shapes like Trigonal Bipyramidal, Octahedral, etc.)</p>
                     </div>
@@ -474,7 +483,7 @@
                             <li>If the central atom does not have an octet, form multiple bonds (double or triple) by moving lone pairs from terminal atoms.</li>
                             <li>Enclose the entire structure in square brackets and write the charge as a superscript outside the brackets.</li>
                         </ol>
-                        <p>Example: Ammonium ion (NH₄⁺). N has 5 valence e⁻, each H has 1 (total 4). Positive charge means subtract 1 e⁻. Total = 5 + 4 - 1 = 8 valence e⁻. N is central, bonded to 4 H atoms. Each bond uses 2 e⁻, so 4 bonds use 8 e⁻. N has an octet, each H has a duet. Structure: [H-N(H)(H)-H]⁺ (with N having single bonds to each H).</p>
+                        <p>Example: Ammonium ion (NH$_4$$^+$). N has 5 valence e$^-$, each H has 1 (total 4). Positive charge means subtract 1 e$^-$. Total = 5 + 4 - 1 = 8 valence e$^-$. N is central, bonded to 4 H atoms. Each bond uses 2 e$^-$, so 4 bonds use 8 e$^-$. N has an octet, each H has a duet. Structure: [H-N(H)(H)-H]$^+$ (with N having single bonds to each H).</p>
                     </div>
                 </div>
             </div>
@@ -490,15 +499,15 @@
                     </button>
                     <div class="accordion-content mt-2 text-stone-700">
                         <ol class="list-decimal list-inside ml-4">
-                            <li><strong>Synthesis (Combination)</strong>: Two or more simple substances combine to form a more complex substance. A + B → AB.
-                                <br>Example: $CaO(s) + H_2O(l) \rightarrow Ca(OH)_2(aq)$ (Metallic oxide + water → Base)</li>
-                            <li><strong>Decomposition</strong>: A complex substance breaks down into two or more simpler substances. AB → A + B.
-                                <br>Example: $2H_2O(l) \rightarrow 2H_2(g) + O_2(g)$ (Binary compounds → elements)</li>
-                            <li><strong>Single Displacement (Replacement)</strong>: One element replaces another element in a compound. A + BC → AC + B.
+                            <li><strong>Synthesis (Combination)</strong>: Two or more simple substances combine to form a more complex substance. A + B $\rightarrow$ AB.
+                                <br>Example: $CaO(s) + H_2O(l) \rightarrow Ca(OH)_2(aq)$ (Metallic oxide + water $\rightarrow$ Base)</li>
+                            <li><strong>Decomposition</strong>: A complex substance breaks down into two or more simpler substances. AB $\rightarrow$ A + B.
+                                <br>Example: $2H_2O(l) \rightarrow 2H_2(g) + O_2(g)$ (Binary compounds $\rightarrow$ elements)</li>
+                            <li><strong>Single Displacement (Replacement)</strong>: One element replaces another element in a compound. A + BC $\rightarrow$ AC + B.
                                 <br>Example: $Mg(s) + 2AgNO_3(aq) \rightarrow Mg(NO_3)_2(aq) + 2Ag(s)$ (Requires activity series to predict if reaction occurs)</li>
-                            <li><strong>Double Displacement (Metathesis)</strong>: The ions of two compounds exchange places in an aqueous solution to form two new compounds. AB + CD → AD + CB.
+                            <li><strong>Double Displacement (Metathesis)</strong>: The ions of two compounds exchange places in an aqueous solution to form two new compounds. AB + CD $\rightarrow$ AD + CB.
                                 <br>Example: $Al_2(SO_4)_3(aq) + 6NaOH(aq) \rightarrow 2Al(OH)_3(s) + 3Na_2SO_4(aq)$ (Often forms a precipitate, gas, or water)</li>
-                            <li><strong>Combustion</strong>: A substance reacts rapidly with oxygen (O₂), often producing heat and light. Typically involves hydrocarbons or organic compounds reacting with oxygen to produce carbon dioxide (CO₂) and water (H₂O).
+                            <li><strong>Combustion</strong>: A substance reacts rapidly with oxygen (O$_2$), often producing heat and light. Typically involves hydrocarbons or organic compounds reacting with oxygen to produce carbon dioxide (CO$_2$) and water (H$_2$O).
                                 <br>Example: $C_3H_8(g) + 5O_2(g) \rightarrow 3CO_2(g) + 4H_2O(g)$ (Propane combustion)</li>
                         </ol>
                     </div>
@@ -516,10 +525,10 @@
                         </ul>
                         <p><strong>Rules for Assigning Oxidation Numbers:</strong></p>
                         <ol class="list-decimal list-inside ml-4">
-                            <li>An uncombined element (e.g., O₂, Fe) = 0.</li>
-                            <li>A monatomic ion = Charge on the ion (e.g., Na⁺ = +1, Cl⁻ = -1).</li>
+                            <li>An uncombined element (e.g., O$_2$, Fe) = 0.</li>
+                            <li>A monatomic ion = Charge on the ion (e.g., Na$^+$ = +1, Cl$^- $ = -1).</li>
                             <li>Fluorine in compounds = –1.</li>
-                            <li>Oxygen in compounds = –2 (Exceptions: in peroxides like H₂O₂, O = –1; in compounds with fluorine, O can be positive).</li>
+                            <li>Oxygen in compounds = –2 (Exceptions: in peroxides like H$_2$O$_2$, O = –1; in compounds with fluorine, O can be positive).</li>
                             <li>Hydrogen in compounds = +1 (Exception: in metal hydrides like NaH, H = –1).</li>
                             <li>Group 1 metals in compounds = +1.</li>
                             <li>Group 2 metals in compounds = +2.</li>
@@ -553,7 +562,7 @@
                         <span class="arrow text-xl transition-transform duration-300 transform">▶</span>
                     </button>
                     <div class="accordion-content mt-2 text-stone-700">
-                        <p>To solve this, you use the "Mass ↔ Mole" conversion, using the molar mass of lithium bromide (LiBr).</p>
+                        <p>To solve this, you use the "Mass $\leftrightarrow$ Mole" conversion, using the molar mass of lithium bromide (LiBr).</p>
                         <ol class="list-decimal list-inside ml-4">
                             <li>Find the molar mass of LiBr:
                                 <ul class="list-disc list-inside ml-4">
@@ -585,13 +594,13 @@
                             </li>
                             <li>Divide the mole values by the smallest number of moles (0.1457 mol in this case):
                                 <ul class="list-disc list-inside ml-4">
-                                    <li>For Br: 0.5850 mol / 0.1457 mol ≈ 4.015 ≈ 4</li>
+                                    <li>For Br: 0.5850 mol / 0.1457 mol $\approx$ 4.015 $\approx$ 4</li>
                                     <li>For C: 0.1457 mol / 0.1457 mol = 1</li>
                                 </ul>
                             </li>
                             <li>The resulting numbers are the subscripts in the empirical formula.</li>
                         </ol>
-                        <p><strong>Empirical Formula</strong>: CBr₄</p>
+                        <p><strong>Empirical Formula</strong>: CBr$_4$</p>
                     </div>
                 </div>
                  <div class="qna-item mb-4 p-4 border border-stone-200 rounded-lg shadow-sm">
@@ -619,26 +628,26 @@
                             <li>Divide each mole value by the smallest number of moles (approx. 3.330 mol):
                                 <ul class="list-disc list-inside ml-4">
                                     <li>C: 3.330 / 3.330 = 1</li>
-                                    <li>H: 6.647 / 3.330 ≈ 2</li>
-                                    <li>O: 3.331 / 3.330 ≈ 1</li>
+                                    <li>H: 6.647 / 3.330 $\approx$ 2</li>
+                                    <li>O: 3.331 / 3.330 $\approx$ 1</li>
                                 </ul>
                             </li>
-                            <li>The empirical formula is CH₂O.</li>
+                            <li>The empirical formula is CH$_2$O.</li>
                         </ol>
                         <p><strong>Step 2: Determine the Molecular Formula</strong></p>
                         <ol class="list-decimal list-inside ml-2">
-                            <li>Calculate the molar mass of the empirical formula (CH₂O):
-                                <br>Molar Mass (CH₂O) = 12.011 (C) + 2 * 1.008 (H) + 15.999 (O) = 30.026 g/mol.
+                            <li>Calculate the molar mass of the empirical formula (CH$_2$O):
+                                <br>Molar Mass (CH$_2$O) = 12.011 (C) + 2 * 1.008 (H) + 15.999 (O) = 30.026 g/mol.
                             </li>
                             <li>Divide the given molar mass of the compound by the empirical formula mass:
                                 <br>Ratio = (Molar Mass of Compound) / (Empirical Formula Mass)
-                                <br>Ratio = 60 g/mol / 30.026 g/mol ≈ 2
+                                <br>Ratio = 60 g/mol / 30.026 g/mol $\approx$ 2
                             </li>
                             <li>Multiply the subscripts in the empirical formula by this ratio (2):
-                                <br>Molecular Formula = (CH₂O)₂ = C₂H₄O₂
+                                <br>Molecular Formula = (CH$_2$O)$_2$ = C$_2$H$_4$O$_2$
                             </li>
                         </ol>
-                        <p><strong>Molecular Formula</strong>: C₂H₄O₂</p>
+                        <p><strong>Molecular Formula</strong>: C$_2$H$_4$O$_2$</p>
                     </div>
                 </div>
             </div>
@@ -654,8 +663,8 @@
                     <div class="accordion-content mt-2 text-stone-700">
                         <p>Intermolecular forces (IMFs) are attractions between molecules. Their relative strengths are generally:</p>
                         <ol class="list-decimal list-inside ml-4">
-                            <li><strong>Ion-Dipole Forces</strong>: Strongest among those listed if an ion is involved. Attraction between an ion and a polar molecule. (e.g., NaCl dissolved in H₂O).</li>
-                            <li><strong>Hydrogen Bonding</strong>: A special, strong type of dipole-dipole interaction. Occurs when hydrogen is bonded to a highly electronegative atom (Nitrogen, Oxygen, or Fluorine - N, O, F) and is attracted to an N, O, or F atom in a nearby molecule. (e.g., between H₂O molecules).</li>
+                            <li><strong>Ion-Dipole Forces</strong>: Strongest among those listed if an ion is involved. Attraction between an ion and a polar molecule. (e.g., NaCl dissolved in H$_2$O).</li>
+                            <li><strong>Hydrogen Bonding</strong>: A special, strong type of dipole-dipole interaction. Occurs when hydrogen is bonded to a highly electronegative atom (Nitrogen, Oxygen, or Fluorine - N, O, F) and is attracted to an N, O, or F atom in a nearby molecule. (e.g., between H$_2$O molecules).</li>
                             <li><strong>Dipole-Dipole Forces</strong>: Attraction between polar molecules (molecules with permanent dipoles). Weaker than hydrogen bonds. (e.g., between HCl molecules).</li>
                             <li><strong>London Dispersion Forces (LDF)</strong>: Weakest type of IMF. Present in ALL molecules (polar and nonpolar). Caused by temporary, induced dipoles due to the constant motion of electrons. Strength increases with the size of the molecule (more electrons means greater polarizability).</li>
                         </ol>
@@ -674,12 +683,12 @@
                     </button>
                     <div class="accordion-content mt-2 text-stone-700">
                         <p><strong>Molarity (M)</strong>: Moles of solute per liter of solution.</p>
-                        <p class="math">M = moles of solute / Liters of solution</p>
+                        <p>$M = \frac{\text{moles of solute}}{\text{Liters of solution}}$</p>
                         <p>Example from notes: If you need to make 375 mL of 1.2 M sodium hydroxide (NaOH), you need 18 grams of NaOH. (Calculation: 1.2 mol/L * 0.375 L = 0.45 mol NaOH; 0.45 mol * 40.00 g/mol NaOH = 18 g NaOH).</p>
                         
                         <p><strong>Molality (m)</strong>: Moles of solute per kilogram of solvent.</p>
-                        <p class="math">m = moles of solute / kilograms of solvent</p>
-                        <p>Example from notes: Calculate molality of 422 grams of sodium chloride (NaCl) diluted in 475 mL H₂O (density of water ≈ 1 g/mL, so 475 mL H₂O ≈ 0.475 kg H₂O).
+                        <p>$m = \frac{\text{moles of solute}}{\text{kilograms of solvent}}$</p>
+                        <p>Example from notes: Calculate molality of 422 grams of sodium chloride (NaCl) diluted in 475 mL H$_2$O (density of water $\approx$ 1 g/mL, so 475 mL H$_2$O $\approx$ 0.475 kg H$_2$O).
                         <br>Moles NaCl = 422 g / 58.44 g/mol = 7.22 mol NaCl.
                         <br>Molality = 7.22 mol / 0.475 kg = 15.2 m NaCl (approx.).</p>
                     </div>
@@ -691,22 +700,22 @@
                     </button>
                     <div class="accordion-content mt-2 text-stone-700">
                         <p><strong>Freezing Point Depression</strong>: The presence of a solute lowers the freezing point of a solvent.</p>
-                        <p class="math">ΔT_f = i \cdot K_f \cdot m</p>
+                        <p>$\Delta T_f = i \cdot K_f \cdot m$</p>
                         <ul class="list-disc list-inside ml-4">
-                            <li><span class="math">ΔT_f</span>: Change in freezing point (T<sub>f,solvent</sub> - T<sub>f,solution</sub>).</li>
-                            <li><span class="math">i</span>: van 't Hoff factor (number of particles the solute dissociates into; i=1 for non-electrolytes).</li>
-                            <li><span class="math">K_f</span>: Freezing point depression constant of the solvent (for water, <span class="math">K_f</span> = 1.86 °C·kg/mol).</li>
-                            <li><span class="math">m</span>: Molality of the solution.</li>
+                            <li>$\Delta T_f$: Change in freezing point (T$_{f,\text{solvent}}$ - T$_{f,\text{solution}}$).</li>
+                            <li>$i$: van 't Hoff factor (number of particles the solute dissociates into; i=1 for non-electrolytes).</li>
+                            <li>$K_f$: Freezing point depression constant of the solvent (for water, $K_f$ = 1.86 $^\circ$C$\cdot$kg/mol).</li>
+                            <li>$m$: Molality of the solution.</li>
                         </ul>
                         <p><strong>Boiling Point Elevation</strong>: The presence of a solute raises the boiling point of a solvent.</p>
-                        <p class="math">ΔT_b = i \cdot K_b \cdot m</p>
+                        <p>$\Delta T_b = i \cdot K_b \cdot m$</p>
                          <ul class="list-disc list-inside ml-4">
-                            <li><span class="math">ΔT_b</span>: Change in boiling point (T<sub>b,solution</sub> - T<sub>b,solvent</sub>).</li>
-                            <li><span class="math">i</span>: van 't Hoff factor.</li>
-                            <li><span class="math">K_b</span>: Boiling point elevation constant of the solvent (for water, <span class="math">K_b</span> = 0.512 °C·kg/mol).</li>
-                            <li><span class="math">m</span>: Molality of the solution.</li>
+                            <li>$\Delta T_b$: Change in boiling point (T$_{b,\text{solution}}$ - T$_{b,\text{solvent}}$).</li>
+                            <li>$i$: van 't Hoff factor.</li>
+                            <li>$K_b$: Boiling point elevation constant of the solvent (for water, $K_b$ = 0.512 $^\circ$C$\cdot$kg/mol).</li>
+                            <li>$m$: Molality of the solution.</li>
                         </ul>
-                        <p>The notes provide examples for C₆H₁₂O₆ (a non-electrolyte, so i=1) and NaCl (an electrolyte, i=2 as it dissociates into Na⁺ and Cl⁻).</p>
+                        <p>The notes provide examples for C$_6$H$_{12}$O$_6$ (a non-electrolyte, so i=1) and NaCl (an electrolyte, i=2 as it dissociates into Na$^+$ and Cl$^- $).</p>
                     </div>
                 </div>
             </div>
@@ -722,13 +731,13 @@
                     <div class="accordion-content mt-2 text-stone-700">
                         <p><strong>Arrhenius Definition:</strong></p>
                         <ul class="list-disc list-inside ml-4">
-                            <li><strong>Arrhenius Acid</strong>: A substance that generates H⁺ ions (protons) when dissolved in water. (e.g., HCl, CH₃COOH).</li>
-                            <li><strong>Arrhenius Base</strong>: A substance that generates OH⁻ ions (hydroxide ions) when dissolved in water. (e.g., NaOH).</li>
+                            <li><strong>Arrhenius Acid</strong>: A substance that generates H$^+$ ions (protons) when dissolved in water. (e.g., HCl, CH$_3$COOH).</li>
+                            <li><strong>Arrhenius Base</strong>: A substance that generates OH$^- $ ions (hydroxide ions) when dissolved in water. (e.g., NaOH).</li>
                         </ul>
                         <p><strong>Brønsted-Lowry Definition:</strong></p>
                         <ul class="list-disc list-inside ml-4">
-                            <li><strong>Brønsted-Lowry Acid</strong>: A proton (H⁺) donor.</li>
-                            <li><strong>Brønsted-Lowry Base</strong>: A proton (H⁺) acceptor. (This definition is broader; bases do not need to contain OH⁻, e.g., NH₃).</li>
+                            <li><strong>Brønsted-Lowry Acid</strong>: A proton (H$^+$) donor.</li>
+                            <li><strong>Brønsted-Lowry Base</strong>: A proton (H$^+$) acceptor. (This definition is broader; bases do not need to contain OH$^- $, e.g., NH$_3$).</li>
                         </ul>
                     </div>
                 </div>
@@ -738,23 +747,23 @@
                         <span class="arrow text-xl transition-transform duration-300 transform">▶</span>
                     </button>
                     <div class="accordion-content mt-2 text-stone-700">
-                        <p>Key relationships at 25°C:</p>
+                        <p>Key relationships at 25$^\circ$C:</p>
                         <ul class="list-disc list-inside ml-4">
-                            <li>Ion product of water: <span class="math">K_w = [H⁺][OH⁻] = 1.0 \times 10^{-14}</span></li>
-                            <li>pH definition: <span class="math">pH = -log[H⁺]</span></li>
-                            <li>pOH definition: <span class="math">pOH = -log[OH⁻]</span></li>
-                            <li>Relationship between pH and pOH: <span class="math">pH + pOH = 14</span></li>
+                            <li>Ion product of water: $K_w = [\text{H}^+][\text{OH}^-] = 1.0 \times 10^{-14}$</li>
+                            <li>pH definition: $pH = -\log[\text{H}^+]$</li>
+                            <li>pOH definition: $pOH = -\log[\text{OH}^-]$</li>
+                            <li>Relationship between pH and pOH: $pH + pOH = 14$</li>
                         </ul>
                         <p>From these, you can calculate any of the four values if one is known:</p>
                         <ul class="list-disc list-inside ml-4">
-                            <li>Given [H⁺], find pH: <span class="math">pH = -log[H⁺]</span></li>
-                            <li>Given pH, find [H⁺]: <span class="math">[H⁺] = 10^{-pH}</span></li>
-                            <li>Given [OH⁻], find pOH: <span class="math">pOH = -log[OH⁻]</span></li>
-                            <li>Given pOH, find [OH⁻]: <span class="math">[OH⁻] = 10^{-pOH}</span></li>
-                            <li>Given [H⁺], find [OH⁻]: <span class="math">[OH⁻] = K_w / [H⁺] = (1.0 \times 10^{-14}) / [H⁺]</span></li>
-                            <li>Given [OH⁻], find [H⁺]: <span class="math">[H⁺] = K_w / [OH⁻] = (1.0 \times 10^{-14}) / [OH⁻]</span></li>
-                            <li>Given pH, find pOH: <span class="math">pOH = 14 - pH</span></li>
-                            <li>Given pOH, find pH: <span class="math">pH = 14 - pOH</span></li>
+                            <li>Given $[\text{H}^+]$, find pH: $pH = -\log[\text{H}^+]$</li>
+                            <li>Given pH, find $[\text{H}^+]$: $[\text{H}^+] = 10^{-pH}$</li>
+                            <li>Given $[\text{OH}^-]$, find pOH: $pOH = -\log[\text{OH}^-]$</li>
+                            <li>Given pOH, find $[\text{OH}^-]$: $[\text{OH}^-] = 10^{-pOH}$</li>
+                            <li>Given $[\text{H}^+]$, find $[\text{OH}^-]$: $[\text{OH}^-] = K_w / [\text{H}^+] = (1.0 \times 10^{-14}) / [\text{H}^+]$</li>
+                            <li>Given $[\text{OH}^-]$, find $[\text{H}^+]$: $[\text{H}^+] = K_w / [\text{OH}^-] = (1.0 \times 10^{-14}) / [\text{OH}^-]$</li>
+                            <li>Given pH, find pOH: $pOH = 14 - pH$</li>
+                            <li>Given pOH, find pH: $pH = 14 - pOH$</li>
                         </ul>
                     </div>
                 </div>
@@ -770,8 +779,8 @@
                     </button>
                     <div class="accordion-content mt-2 text-stone-700">
                         <ul class="list-disc list-inside ml-4">
-                            <li><strong>Endothermic Reaction</strong>: A reaction that absorbs heat energy from its surroundings. The enthalpy change (<span class="math">ΔH</span>) for an endothermic reaction is positive (<span class="math">ΔH > 0</span>). The products have higher enthalpy than the reactants.</li>
-                            <li><strong>Exothermic Reaction</strong>: A reaction that releases heat energy into its surroundings. The enthalpy change (<span class="math">ΔH</span>) for an exothermic reaction is negative (<span class="math">ΔH < 0</span>). The products have lower enthalpy than the reactants.</li>
+                            <li><strong>Endothermic Reaction</strong>: A reaction that absorbs heat energy from its surroundings. The enthalpy change ($\Delta H$) for an endothermic reaction is positive ($\Delta H > 0$). The products have higher enthalpy than the reactants.</li>
+                            <li><strong>Exothermic Reaction</strong>: A reaction that releases heat energy into its surroundings. The enthalpy change ($\Delta H$) for an exothermic reaction is negative ($\Delta H < 0$). The products have lower enthalpy than the reactants.</li>
                         </ul>
                     </div>
                 </div>
@@ -784,7 +793,7 @@
                         <p><strong>Collision Theory</strong> states that for a chemical reaction to occur, reactant particles (atoms, ions, or molecules) must collide with each other.</p>
                         <p>However, not all collisions result in a reaction. For a collision to be <strong>effective</strong> (i.e., lead to the formation of products), two main factors must be met:</p>
                         <ol class="list-decimal list-inside ml-4">
-                            <li><strong>Sufficient Energy</strong>: The colliding particles must possess a minimum amount of kinetic energy, known as the activation energy (<span class="math">E_a</span>). This energy is needed to break existing bonds and allow new bonds to form.</li>
+                            <li><strong>Sufficient Energy</strong>: The colliding particles must possess a minimum amount of kinetic energy, known as the activation energy ($E_a$). This energy is needed to break existing bonds and allow new bonds to form.</li>
                             <li><strong>Correct Orientation</strong>: The colliding particles must be oriented in space in a way that allows the necessary bonds to break and form. If they collide with an improper orientation, they will likely just bounce off each other, even if they have sufficient energy.</li>
                         </ol>
                     </div>
@@ -818,11 +827,11 @@
                     <div class="accordion-content mt-2 text-stone-700">
                         <p>These laws describe the relationships between pressure (P), volume (V), temperature (T in Kelvin), and the amount of gas (n in moles).</p>
                         <ul class="list-disc list-inside ml-4">
-                            <li><strong>Boyle's Law</strong> (constant T and n): <span class="math">P_1V_1 = P_2V_2</span>. Pressure and volume are inversely proportional.</li>
-                            <li><strong>Charles's Law</strong> (constant P and n): <span class="math">V_1/T_1 = V_2/T_2</span>. Volume and absolute temperature are directly proportional.</li>
-                            <li><strong>Gay-Lussac's Law</strong> (constant V and n): <span class="math">P_1/T_1 = P_2/T_2</span>. Pressure and absolute temperature are directly proportional.</li>
-                            <li><strong>Combined Gas Law</strong> (constant n): <span class="math">(P_1V_1)/T_1 = (P_2V_2)/T_2</span>. Combines Boyle's, Charles's, and Gay-Lussac's laws.</li>
-                            <li><strong>Ideal Gas Law</strong>: <span class="math">PV = nRT</span>. Relates all four variables. R is the ideal gas constant (e.g., 0.0821 L·atm/mol·K or 8.314 J/mol·K, depending on units of P and V).</li>
+                            <li><strong>Boyle's Law</strong> (constant T and n): $P_1V_1 = P_2V_2$. Pressure and volume are inversely proportional.</li>
+                            <li><strong>Charles's Law</strong> (constant P and n): $\frac{V_1}{T_1} = \frac{V_2}{T_2}$. Volume and absolute temperature are directly proportional.</li>
+                            <li><strong>Gay-Lussac's Law</strong> (constant V and n): $\frac{P_1}{T_1} = \frac{P_2}{T_2}$. Pressure and absolute temperature are directly proportional.</li>
+                            <li><strong>Combined Gas Law</strong> (constant n): $\frac{P_1V_1}{T_1} = \frac{P_2V_2}{T_2}$. Combines Boyle's, Charles's, and Gay-Lussac's laws.</li>
+                            <li><strong>Ideal Gas Law</strong>: $PV = nRT$. Relates all four variables. R is the ideal gas constant (e.g., 0.0821 L$\cdot$atm/mol$\cdot$K or 8.314 J/mol$\cdot$K, depending on units of P and V).</li>
                         </ul>
                     </div>
                 </div>
