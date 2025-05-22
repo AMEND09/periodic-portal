@@ -1,0 +1,1862 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Chemistry Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="text/javascript" id="MathJax-script" async
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+    </script>
+    <script>
+        // MathJax configuration for LaTeX rendering
+        MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']]
+            },
+            svg: {
+                fontCache: 'global'
+            }
+        };
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* Tailwind gray-50 */
+            color: #1e293b; /* Tailwind slate-800 */
+        }
+        .quiz-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background-color: #ffffff;
+            border-radius: 0.75rem; /* rounded-xl */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* shadow-xl */
+        }
+        .quiz-option-label {
+            @apply flex items-center p-4 rounded-lg border border-gray-300 mb-3 transition-colors duration-200 cursor-pointer;
+            @apply hover:bg-teal-50 hover:border-teal-500;
+        }
+        .quiz-option-label.correct {
+            @apply bg-green-100 border-green-500;
+        }
+        .quiz-option-label.incorrect {
+            @apply bg-red-100 border-red-500;
+        }
+        .quiz-option-label.disabled {
+            @apply opacity-75 cursor-not-allowed;
+        }
+        .quiz-option-label input[type="radio"] {
+            @apply mr-4 h-5 w-5 text-teal-600 focus:ring-teal-500;
+        }
+        .quiz-input-text {
+            @apply w-full p-3 border border-gray-300 rounded-lg focus:ring-teal-500 focus:border-teal-500 text-lg;
+        }
+        .quiz-button {
+            @apply px-6 py-3 rounded-lg shadow-md transition-colors duration-200;
+        }
+        .quiz-button-primary {
+            @apply bg-teal-600 text-white hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed;
+        }
+        .quiz-button-secondary {
+            @apply bg-gray-500 text-white hover:bg-gray-600;
+        }
+    </style>
+</head>
+<body>
+    <div class="quiz-container">
+        <h1 class="text-4xl font-extrabold text-teal-800 mb-6 text-center">Chemistry Quiz</h1>
+        <p class="text-lg text-gray-700 mb-8 text-center">Test your knowledge across various chemistry topics!</p>
+        
+        <div id="quizDisplay">
+            <div class="mb-6">
+                <p id="questionNumber" class="text-sm text-gray-500 mb-2">Question 1 of 100</p>
+                <div id="questionText" class="text-2xl font-semibold text-gray-900 mb-6"></div>
+            </div>
+
+            <div id="optionsContainer" class="flex flex-col space-y-3">
+                </div>
+
+            <div id="feedback" class="text-lg font-medium mt-6 mb-4 min-h-[1.5rem]"></div>
+            
+            <div class="flex justify-between items-center mt-8">
+                <button id="prevQuestionBtn" class="quiz-button quiz-button-secondary hidden">Previous</button>
+                <button id="nextQuestionBtn" class="quiz-button quiz-button-primary flex-grow ml-4">Next Question</button>
+            </div>
+        </div>
+
+        <div id="quizResults" class="hidden text-center p-8">
+            <h2 class="text-3xl font-bold text-teal-700 mb-4">Quiz Complete!</h2>
+            <p class="text-2xl text-gray-800 mb-6">You scored <span id="scoreDisplay" class="font-extrabold text-teal-600"></span> out of <span id="totalQuestionsDisplay" class="font-extrabold text-teal-600"></span>.</p>
+            <button id="restartQuizBtn" class="quiz-button quiz-button-primary">Restart Quiz</button>
+        </div>
+    </div>
+
+    <script>
+        const questionNumberDisplay = document.getElementById('questionNumber');
+        const questionTextDisplay = document.getElementById('questionText');
+        const optionsContainer = document.getElementById('optionsContainer');
+        const feedbackDisplay = document.getElementById('feedback');
+        const prevQuestionBtn = document.getElementById('prevQuestionBtn');
+        const nextQuestionBtn = document.getElementById('nextQuestionBtn');
+        // Removed global gradeAnswerBtn reference as it's now dynamically created
+
+        const quizDisplay = document.getElementById('quizDisplay');
+        const quizResults = document.getElementById('quizResults');
+        const scoreDisplay = document.getElementById('scoreDisplay');
+        const totalQuestionsDisplay = document.getElementById('totalQuestionsDisplay');
+        const restartQuizBtn = document.getElementById('restartQuizBtn');
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let userAnswers = []; // Store user's answers for review/navigation
+
+        // Define the quiz questions
+        // This array will contain 100 questions.
+        // I've generated a diverse set including multiple-choice and open-response,
+        // with some questions using LaTeX for chemical formulas/equations.
+        const quizQuestions = [
+            // General Chemistry Concepts
+            {
+                question: "Which state of matter has an indefinite shape and definite volume?",
+                options: ["Solid", "Liquid", "Gas", "Plasma"],
+                answer: "Liquid",
+                type: "multiple-choice"
+            },
+            {
+                question: "What is the name of the process where a gas turns directly into a solid?",
+                type: "open-response",
+                answer: "Deposition"
+            },
+            {
+                question: "What is the chemical name for $Na^+$?",
+                type: "open-response",
+                answer: "Sodium ion"
+            },
+            {
+                question: "Which of the following is a physical change?",
+                options: ["Burning paper", "Rusting iron", "Melting ice", "Digesting food"],
+                answer: "Melting ice",
+                type: "multiple-choice"
+            },
+            {
+                question: "When adding or subtracting, the answer should have the same number of decimal places as the measurement with the _____ decimal places.",
+                options: ["most", "least", "exact", "average"],
+                answer: "least",
+                type: "multiple-choice"
+            },
+            {
+                question: "Calculate the density of an object with a mass of 25.0 g and a volume of 5.0 $cm^3$.",
+                type: "open-response",
+                answer: "5.0 g/cm^3"
+            },
+            {
+                question: "What is the primary purpose of wearing goggles in a chemistry lab?",
+                options: ["To look stylish", "To protect eyes from splashes", "To improve visibility", "To prevent headaches"],
+                answer: "To protect eyes from splashes",
+                type: "multiple-choice"
+            },
+            {
+                question: "What is the chemical formula for carbon dioxide?",
+                type: "open-response",
+                answer: "CO2"
+            },
+            {
+                question: "Which state of matter has particles that are widely spaced and move randomly?",
+                options: ["Solid", "Liquid", "Gas", "Plasma"],
+                answer: "Gas",
+                type: "multiple-choice"
+            },
+            {
+                question: "Is dissolving sugar in water a physical or chemical change?",
+                type: "open-response",
+                answer: "Physical"
+            },
+
+            // Atomic Structure & The Atom
+            {
+                question: "The atomic number of an element is determined by the number of _____ in its nucleus.",
+                options: ["neutrons", "electrons", "protons", "isotopes"],
+                answer: "protons",
+                type: "multiple-choice"
+            },
+            {
+                question: "An atom with 6 protons, 6 neutrons, and 6 electrons is an isotope of which element?",
+                type: "open-response",
+                answer: "Carbon"
+            },
+            {
+                question: "What is an ion?",
+                type: "open-response",
+                answer: "An atom or molecule with a net electrical charge due to the loss or gain of electrons."
+            },
+            {
+                question: "According to the Aufbau principle, electrons fill the _____ available energy levels first.",
+                options: ["highest", "lowest", "middle", "outermost"],
+                answer: "lowest",
+                type: "multiple-choice"
+            },
+            {
+                question: "J.J. Thomson's experiment led to the discovery of the _____.",
+                options: ["nucleus", "proton", "neutron", "electron"],
+                answer: "electron",
+                type: "multiple-choice"
+            },
+            {
+                question: "What is the mass number of an atom with 11 protons and 12 neutrons?",
+                type: "open-response",
+                answer: "23"
+            },
+            {
+                question: "In the electron configuration $1s^22s^22p^6$, what does the '2p' refer to?",
+                options: ["Energy level", "Number of electrons", "Sublevel", "Orbital spin"],
+                answer: "Sublevel",
+                type: "multiple-choice"
+            },
+            {
+                question: "Rutherford's gold foil experiment suggested that atoms have a small, dense, positively charged _____.",
+                type: "open-response",
+                answer: "nucleus"
+            },
+            {
+                question: "What is the charge of an atom that loses two electrons?",
+                type: "open-response",
+                answer: "+2"
+            },
+            {
+                question: "Which subatomic particle has a negative charge?",
+                options: ["Proton", "Neutron", "Electron", "Nucleus"],
+                answer: "Electron",
+                type: "multiple-choice"
+            },
+
+            // Periodic Table & Trends
+            {
+                question: "Elements in Group 17 of the periodic table are known as _____.",
+                options: ["Alkali metals", "Alkaline Earth metals", "Halogens", "Noble gases"],
+                answer: "Halogens",
+                type: "multiple-choice"
+            },
+            {
+                question: "Atomic radius generally _____ as you move from left to right across a period.",
+                options: ["increases", "decreases", "stays the same", "fluctuates"],
+                answer: "decreases",
+                type: "multiple-choice"
+            },
+            {
+                question: "What is the trend for ionization energy as you move down a group?",
+                type: "open-response",
+                answer: "Decreases"
+            },
+            {
+                question: "Which block of the periodic table do transition metals belong to?",
+                options: ["s-block", "p-block", "d-block", "f-block"],
+                answer: "d-block",
+                type: "multiple-choice"
+            },
+            {
+                question: "Why do elements in the same group have similar chemical properties?",
+                type: "open-response",
+                answer: "They have the same number of valence electrons."
+            },
+            {
+                question: "Which element is a liquid at room temperature?",
+                options: ["Oxygen", "Bromine", "Chlorine", "Iodine"],
+                answer: "Bromine",
+                type: "multiple-choice"
+            },
+            {
+                question: "What is the most electronegative element?",
+                type: "open-response",
+                answer: "Fluorine"
+            },
+            {
+                question: "Elements in Group 1 are called _____ metals.",
+                type: "open-response",
+                answer: "Alkali"
+            },
+            {
+                question: "As you go down a group, the shielding effect on valence electrons generally _____.",
+                options: ["increases", "decreases", "stays the same", "becomes irrelevant"],
+                answer: "increases",
+                type: "multiple-choice"
+            },
+            {
+                question: "Are noble gases generally reactive or unreactive?",
+                type: "open-response",
+                answer: "Unreactive"
+            },
+
+            // Chemical Bonding & Molecular Structure
+            {
+                question: "A bond formed by the sharing of electrons is a/an _____ bond.",
+                options: ["ionic", "metallic", "covalent", "hydrogen"],
+                answer: "covalent",
+                type: "multiple-choice"
+            },
+            {
+                question: "In a polar covalent bond, electrons are shared _____.",
+                options: ["equally", "unequally", "completely transferred", "not shared at all"],
+                answer: "unequally",
+                type: "multiple-choice"
+            },
+            {
+                question: "What does VSEPR theory predict about molecules?",
+                type: "open-response",
+                answer: "Molecular shapes based on electron pair repulsion."
+            },
+            {
+                question: "What is the bond angle in a tetrahedral molecule like methane ($CH_4$)?",
+                type: "open-response",
+                answer: "109.5 degrees"
+            },
+            {
+                question: "Which of the following molecules is nonpolar, despite having polar bonds?",
+                options: ["$H_2O$", "$NH_3$", "$CO_2$", "$HCl$"],
+                answer: "$CO_2$",
+                type: "multiple-choice"
+            },
+            {
+                question: "How many valence electrons does Oxygen (O) have?",
+                type: "open-response",
+                answer: "6"
+            },
+            {
+                question: "A cation is formed when an atom _____ electrons.",
+                options: ["gains", "loses", "shares", "transfers"],
+                answer: "loses",
+                type: "multiple-choice"
+            },
+            {
+                question: "Draw the Lewis dot structure for a neutral Nitrogen atom.",
+                type: "open-response", // User would describe it, or draw it on paper
+                answer: "N with 5 dots (one lone pair, three single electrons)" // This is a challenging open-response, might need specific instructions for grading.
+            },
+            {
+                question: "What type of bond is formed between a metal and a nonmetal?",
+                type: "open-response",
+                answer: "Ionic"
+            },
+            {
+                question: "What is the molecular geometry of $NH_3$ (ammonia)?",
+                options: ["Linear", "Trigonal Planar", "Tetrahedral", "Trigonal Pyramidal"],
+                answer: "Trigonal Pyramidal",
+                type: "multiple-choice"
+            },
+
+            // Chemical Reactions
+            {
+                question: "In a synthesis reaction, two or more substances combine to form _____.",
+                options: ["simpler substances", "a more complex substance", "a gas", "a precipitate"],
+                answer: "a more complex substance",
+                type: "multiple-choice"
+            },
+            {
+                question: "Balance the following equation: $H_2 + O_2 \\rightarrow H_2O$",
+                type: "open-response",
+                answer: "$2H_2 + O_2 \\rightarrow 2H_2O$"
+            },
+            {
+                question: "What does it mean for an element to be oxidized?",
+                type: "open-response",
+                answer: "It loses electrons."
+            },
+            {
+                question: "In the reaction $Mg(s) + 2AgNO_3(aq) \\rightarrow Mg(NO_3)_2(aq) + 2Ag(s)$, what type of reaction is this?",
+                options: ["Synthesis", "Decomposition", "Single Displacement", "Double Displacement"],
+                answer: "Single Displacement",
+                type: "multiple-choice"
+            },
+            {
+                question: "Assign the oxidation number of Oxygen in $H_2O$.",
+                type: "open-response",
+                answer: "-2"
+            },
+            {
+                question: "What is a precipitate?",
+                type: "open-response",
+                answer: "An insoluble solid formed from a solution."
+            },
+            {
+                question: "Which law states that matter cannot be created or destroyed in a chemical reaction?",
+                options: ["Law of Definite Proportions", "Law of Multiple Proportions", "Law of Conservation of Mass", "Law of Conservation of Energy"],
+                answer: "Law of Conservation of Mass",
+                type: "multiple-choice"
+            },
+            {
+                question: "Is the following reaction a combustion reaction? $C_6H_{12}O_6(s) + 6O_2(g) \\rightarrow 6CO_2(g) + 6H_2O(l)$",
+                type: "open-response",
+                answer: "Yes"
+            },
+            {
+                question: "In a redox reaction, if an element gains electrons, it is said to be _____.",
+                type: "open-response",
+                answer: "Reduced"
+            },
+            {
+                question: "The activity series is used to predict the products of which type of reaction?",
+                options: ["Synthesis", "Decomposition", "Single Displacement", "Double Displacement"],
+                answer: "Single Displacement",
+                type: "multiple-choice"
+            },
+
+            // Stoichiometry
+            {
+                question: "How many moles are in 36.0 grams of water ($H_2O$)? (Molar mass of $H_2O$ is 18.0 g/mol)",
+                type: "open-response",
+                answer: "2.0 mol"
+            },
+            {
+                question: "What is the empirical formula for a compound containing 75% Carbon and 25% Hydrogen by mass?",
+                type: "open-response",
+                answer: "CH4"
+            },
+            {
+                question: "The reactant that is completely consumed in a chemical reaction is called the _____ reactant.",
+                options: ["excess", "limiting", "primary", "secondary"],
+                answer: "limiting",
+                type: "multiple-choice"
+            },
+            {
+                question: "If the theoretical yield of a reaction is 50.0 g and the actual yield is 40.0 g, what is the percent yield?",
+                type: "open-response",
+                answer: "80%"
+            },
+            {
+                question: "What is Avogadro's number?",
+                type: "open-response",
+                answer: "6.022 x 10^23"
+            },
+            {
+                question: "Which of the following is NOT a unit used in mole conversions?",
+                options: ["grams", "liters (at STP)", "particles", "Celsius"],
+                answer: "Celsius",
+                type: "multiple-choice"
+            },
+            {
+                question: "A compound has an empirical formula of $CH_2$ and a molar mass of 56.1 g/mol. What is its molecular formula?",
+                type: "open-response",
+                answer: "$C_4H_8$"
+            },
+            {
+                question: "What is the molar mass of $NaCl$ (Sodium Chloride)? (Na = 22.99 g/mol, Cl = 35.45 g/mol)",
+                type: "open-response",
+                answer: "58.44 g/mol"
+            },
+            {
+                question: "In stoichiometry, the coefficients in a balanced chemical equation represent the _____ ratio of reactants and products.",
+                options: ["mass", "volume", "mole", "density"],
+                answer: "mole",
+                type: "multiple-choice"
+            },
+            {
+                question: "The percentage by mass of each element in a compound is called its _____ composition.",
+                type: "open-response",
+                answer: "percent"
+            },
+
+            // States of Matter & Intermolecular Forces
+            {
+                question: "Which intermolecular force is present in all molecules?",
+                options: ["Hydrogen bonding", "Dipole-dipole forces", "London Dispersion Forces", "Ion-dipole forces"],
+                answer: "London Dispersion Forces",
+                type: "multiple-choice"
+            },
+            {
+                question: "What is the strongest type of intermolecular force?",
+                type: "open-response",
+                answer: "Ion-dipole forces"
+            },
+            {
+                question: "Hydrogen bonding occurs when hydrogen is bonded to which highly electronegative atoms?",
+                type: "open-response",
+                answer: "Nitrogen, Oxygen, or Fluorine (N, O, F)"
+            },
+            {
+                question: "Which state of matter has a definite volume but an indefinite shape?",
+                options: ["Solid", "Liquid", "Gas", "Plasma"],
+                answer: "Liquid",
+                type: "multiple-choice"
+            },
+            {
+                question: "As the size of a molecule increases, the strength of its London Dispersion Forces generally _____.",
+                type: "open-response",
+                answer: "increases"
+            },
+            {
+                question: "What type of intermolecular force exists between two polar molecules?",
+                type: "open-response",
+                answer: "Dipole-dipole forces"
+            },
+            {
+                question: "Which of the following substances would exhibit hydrogen bonding?",
+                options: ["$CH_4$", "$H_2S$", "$HF$", "$CO_2$"],
+                answer: "$HF$",
+                type: "multiple-choice"
+            },
+            {
+                question: "The resistance of a liquid to flow is called its _____.",
+                type: "open-response",
+                answer: "Viscosity"
+            },
+            {
+                question: "What happens to the kinetic energy of particles as temperature increases?",
+                type: "open-response",
+                answer: "Increases"
+            },
+            {
+                question: "Which state of matter is characterized by particles that are closely packed and vibrate in fixed positions?",
+                options: ["Solid", "Liquid", "Gas", "Plasma"],
+                answer: "Solid",
+                type: "multiple-choice"
+            },
+
+            // Solutions & Concentrations
+            {
+                question: "Molarity (M) is defined as moles of solute per _____ of solution.",
+                options: ["kilogram", "liter", "gram", "milliliter"],
+                answer: "liter",
+                type: "multiple-choice"
+            },
+            {
+                question: "Calculate the molarity of a solution containing 0.5 moles of $NaCl$ in 2.0 L of solution.",
+                type: "open-response",
+                answer: "0.25 M"
+            },
+            {
+                question: "What is the formula for freezing point depression?",
+                type: "open-response",
+                answer: "$\\Delta T_f = i \\cdot K_f \\cdot m$"
+            },
+            {
+                question: "Molality (m) is defined as moles of solute per _____ of solvent.",
+                options: ["liter", "kilogram", "gram", "milliliter"],
+                answer: "kilogram",
+                type: "multiple-choice"
+            },
+            {
+                question: "What is a colligative property?",
+                type: "open-response",
+                answer: "A property of a solution that depends on the concentration of solute particles, not their identity."
+            },
+            {
+                question: "If you dilute a solution, what happens to its concentration?",
+                type: "open-response",
+                answer: "Decreases"
+            },
+            {
+                question: "Which of the following is an example of a colligative property?",
+                options: ["Color", "Density", "Boiling point elevation", "Viscosity"],
+                answer: "Boiling point elevation",
+                type: "multiple-choice"
+            },
+            {
+                question: "What is the van 't Hoff factor (i) for $MgCl_2$?",
+                type: "open-response",
+                answer: "3"
+            },
+            {
+                question: "A solution where the solvent is water is called an _____ solution.",
+                type: "open-response",
+                answer: "aqueous"
+            },
+            {
+                question: "The component of a solution that is present in the larger amount is the _____.",
+                options: ["solute", "solvent", "precipitate", "mixture"],
+                answer: "solvent",
+                type: "multiple-choice"
+            },
+
+            // Acids, Bases & pH
+            {
+                question: "According to the Arrhenius definition, an acid produces _____ ions in water.",
+                options: ["$OH^-$", "$H^+$", "$Cl^-$", "$Na^+$"],
+                answer: "$H^+$",
+                type: "multiple-choice"
+            },
+            {
+                question: "What is the pH of a neutral solution at 25$^\circ$C?",
+                type: "open-response",
+                answer: "7"
+            },
+            {
+                question: "A Brønsted-Lowry base is a proton ($H^+$) _____.",
+                options: ["donor", "acceptor", "neutralizer", "catalyst"],
+                answer: "acceptor",
+                type: "multiple-choice"
+            },
+            {
+                question: "If the $pH$ of a solution is 3, what is the $[H^+]$ concentration?",
+                type: "open-response",
+                answer: "$1.0 \\times 10^{-3} M$"
+            },
+            {
+                question: "What is the relationship between pH and pOH?",
+                type: "open-response",
+                answer: "$pH + pOH = 14$"
+            },
+            {
+                question: "Which of the following is a strong acid?",
+                options: ["$CH_3COOH$", "$H_2CO_3$", "$HCl$", "$H_3PO_4$"],
+                answer: "$HCl$",
+                type: "multiple-choice"
+            },
+            {
+                question: "What is a conjugate acid-base pair?",
+                type: "open-response",
+                answer: "Two species that differ by a single proton ($H^+$)."
+            },
+            {
+                question: "If the $pOH$ of a solution is 2, what is its $pH$?",
+                type: "open-response",
+                answer: "12"
+            },
+            {
+                question: "A reaction between an acid and a base that produces salt and water is called a _____ reaction.",
+                type: "open-response",
+                answer: "neutralization"
+            },
+            {
+                question: "Which of the following is a characteristic of a base?",
+                options: ["Sour taste", "Turns blue litmus red", "Slippery feel", "Reacts with metals to produce hydrogen gas"],
+                answer: "Slippery feel",
+                type: "multiple-choice"
+            },
+
+            // Thermodynamics & Kinetics
+            {
+                question: "A reaction that releases heat energy into its surroundings is called _____.",
+                options: ["endothermic", "exothermic", "isothermic", "adiabatic"],
+                answer: "exothermic",
+                type: "multiple-choice"
+            },
+            {
+                question: "What is the sign of $\\Delta H$ for an endothermic reaction?",
+                type: "open-response",
+                answer: "Positive"
+            },
+            {
+                question: "According to collision theory, what two factors contribute to an effective collision?",
+                type: "open-response",
+                answer: "Sufficient energy and correct orientation"
+            },
+            {
+                question: "The minimum amount of energy required for a reaction to occur is called the _____ energy.",
+                options: ["kinetic", "potential", "activation", "thermal"],
+                answer: "activation",
+                type: "multiple-choice"
+            },
+            {
+                question: "What happens to reaction rate as temperature increases?",
+                type: "open-response",
+                answer: "Increases"
+            },
+            {
+                question: "A catalyst speeds up a reaction by lowering the _____ energy.",
+                type: "open-response",
+                answer: "activation"
+            },
+            {
+                question: "Which of the following would generally increase the rate of a chemical reaction?",
+                options: ["Decreasing temperature", "Decreasing reactant concentration", "Increasing surface area", "Adding an inhibitor"],
+                answer: "Increasing surface area",
+                type: "multiple-choice"
+            },
+            {
+                question: "In an exothermic reaction, do the products have higher or lower enthalpy than the reactants?",
+                type: "open-response",
+                answer: "Lower"
+            },
+            {
+                question: "Is breaking bonds an endothermic or exothermic process?",
+                type: "open-response",
+                answer: "Endothermic"
+            },
+            {
+                question: "The study of reaction rates is called chemical _____.",
+                options: ["thermodynamics", "kinetics", "equilibrium", "stoichiometry"],
+                answer: "kinetics",
+                type: "multiple-choice"
+            },
+
+            // Gases & Gas Laws
+            {
+                question: "According to the Kinetic-Molecular Theory, gas particles are in constant, rapid, and _____ motion.",
+                options: ["circular", "vibrational", "random", "oscillating"],
+                answer: "random",
+                type: "multiple-choice"
+            },
+            {
+                question: "Which gas law states that pressure and volume are inversely proportional at constant temperature and moles?",
+                type: "open-response",
+                answer: "Boyle's Law"
+            },
+            {
+                question: "What is the unit of temperature that must be used in gas law calculations?",
+                type: "open-response",
+                answer: "Kelvin"
+            },
+            {
+                question: "The Ideal Gas Law is represented by the equation $PV = nRT$. What does 'n' represent?",
+                options: ["Pressure", "Volume", "Number of moles", "Temperature"],
+                answer: "Number of moles",
+                type: "multiple-choice"
+            },
+            {
+                question: "If the volume of a gas is doubled at constant pressure and moles, what happens to its temperature?",
+                type: "open-response",
+                answer: "Doubles"
+            },
+            {
+                question: "What is the standard temperature and pressure (STP) for gases?",
+                type: "open-response",
+                answer: "0 degrees Celsius and 1 atm"
+            },
+            {
+                question: "Which law states that the total pressure of a mixture of gases is the sum of the partial pressures of the individual gases?",
+                options: ["Boyle's Law", "Charles's Law", "Gay-Lussac's Law", "Dalton's Law of Partial Pressures"],
+                answer: "Dalton's Law of Partial Pressures",
+                type: "multiple-choice"
+            },
+            {
+                question: "If the pressure of a gas is increased at constant volume and moles, what happens to its temperature?",
+                type: "open-response",
+                answer: "Increases"
+            },
+            {
+                question: "According to KMT, collisions between gas molecules are perfectly _____.",
+                type: "open-response",
+                answer: "elastic"
+            },
+            {
+                question: "Which gas law relates volume and temperature at constant pressure and moles?",
+                options: ["Boyle's Law", "Charles's Law", "Gay-Lussac's Law", "Combined Gas Law"],
+                answer: "Charles's Law",
+                type: "multiple-choice"
+            },
+            // More questions (filling up to 100)
+            {
+                question: "What is the electron configuration for Neon (Ne)?",
+                type: "open-response",
+                answer: "$1s^22s^22p^6$"
+            },
+            {
+                question: "Which type of bond involves the electrostatic attraction between oppositely charged ions?",
+                options: ["Covalent", "Metallic", "Ionic", "Hydrogen"],
+                answer: "Ionic",
+                type: "multiple-choice"
+            },
+            {
+                question: "What is the common name for $H_2SO_4$?",
+                type: "open-response",
+                answer: "Sulfuric acid"
+            },
+            {
+                question: "If a solution has a $pH$ of 8, is it acidic, basic, or neutral?",
+                type: "open-response",
+                answer: "Basic"
+            },
+            {
+                question: "The process of a liquid turning into a gas below its boiling point is called _____.",
+                options: ["Boiling", "Condensation", "Evaporation", "Sublimation"],
+                answer: "Evaporation",
+                type: "multiple-choice"
+            },
+            {
+                question: "How many neutrons are in an atom of Carbon-14 ($^{14}C$)?",
+                type: "open-response",
+                answer: "8"
+            },
+            {
+                question: "Which group contains the Alkaline Earth metals?",
+                type: "open-response",
+                answer: "Group 2"
+            },
+            {
+                question: "What is the molecular geometry of a molecule with 2 bonding groups and 2 lone pairs around the central atom?",
+                options: ["Linear", "Trigonal Planar", "Tetrahedral", "Bent"],
+                answer: "Bent",
+                type: "multiple-choice"
+            },
+            {
+                question: "In the reaction $2Na + Cl_2 \\rightarrow 2NaCl$, what is the oxidizing agent?",
+                type: "open-response",
+                answer: "$Cl_2$"
+            },
+            {
+                question: "How many grams are in 3.0 moles of $CO_2$?",
+                type: "open-response",
+                answer: "132.03 g"
+            },
+            {
+                question: "What happens to the freezing point of a solvent when a solute is added?",
+                type: "open-response",
+                answer: "Decreases"
+            },
+            {
+                question: "What is the $pOH$ of a solution with $[OH^-] = 1.0 \\times 10^{-5} M$?",
+                type: "open-response",
+                answer: "5"
+            },
+            {
+                question: "Is a reaction with a negative $\\Delta H$ endothermic or exothermic?",
+                type: "open-response",
+                answer: "Exothermic"
+            },
+            {
+                question: "What is the relationship between pressure and temperature for a gas at constant volume and moles?",
+                options: ["Directly proportional", "Inversely proportional", "No relationship", "Exponential"],
+                answer: "Directly proportional",
+                type: "multiple-choice"
+            },
+            {
+                question: "What is the maximum number of electrons that can occupy a 'p' subshell?",
+                type: "open-response",
+                answer: "6"
+            },
+            {
+                question: "Which of the following is a characteristic of metals?",
+                options: ["Brittle", "Good insulators", "Ductile", "Low melting points"],
+                answer: "Ductile",
+                type: "multiple-choice"
+            },
+            {
+                question: "What is the empirical formula for $C_6H_{12}O_6$?",
+                type: "open-response",
+                answer: "$CH_2O$"
+            },
+            {
+                question: "The process of a liquid turning into a solid is called _____.",
+                type: "open-response",
+                answer: "Freezing"
+            },
+            {
+                question: "Who proposed the 'Plum Pudding Model' of the atom?",
+                type: "open-response",
+                answer: "J.J. Thomson"
+            },
+            {
+                question: "Which periodic trend describes an atom's tendency to attract electrons in a chemical bond?",
+                options: ["Atomic radius", "Ionization energy", "Electronegativity", "Electron affinity"],
+                answer: "Electronegativity",
+                type: "multiple-choice"
+            },
+            {
+                question: "What type of reaction is $AB \\rightarrow A + B$?",
+                type: "open-response",
+                answer: "Decomposition"
+            },
+            {
+                question: "What is the molarity of a solution made by dissolving 2.0 moles of $KOH$ in enough water to make 500 mL of solution?",
+                type: "open-response",
+                answer: "4.0 M"
+            },
+            {
+                question: "A substance that can act as both an acid and a base is called _____.",
+                type: "open-response",
+                answer: "amphoteric"
+            },
+            {
+                question: "The energy required to remove an electron from a gaseous atom is called _____ energy.",
+                type: "open-response",
+                answer: "ionization"
+            },
+            {
+                question: "What is the volume of 1 mole of any gas at STP?",
+                type: "open-response",
+                answer: "22.4 L"
+            },
+            {
+                question: "Which of the following elements is a halogen?",
+                options: ["Sodium", "Magnesium", "Chlorine", "Argon"],
+                answer: "Chlorine",
+                type: "multiple-choice"
+            },
+            {
+                question: "What is the oxidation number of Hydrogen in $NaH$?",
+                type: "open-response",
+                answer: "-1"
+            },
+            {
+                question: "What is the name of the theory that explains how reactant particles must collide with sufficient energy and correct orientation to react?",
+                type: "open-response",
+                answer: "Collision Theory"
+            },
+            {
+                question: "Which of the following is an example of a covalent compound?",
+                options: ["$NaCl$", "$MgO$", "$CH_4$", "$K_2O$"],
+                answer: "$CH_4$",
+                type: "multiple-choice"
+            },
+            {
+                question: "If a reaction has a positive $\\Delta H$, is it absorbing or releasing heat?",
+                type: "open-response",
+                answer: "Absorbing"
+            },
+            {
+                question: "What is the chemical symbol for gold?",
+                type: "open-response",
+                answer: "Au"
+            },
+            {
+                question: "How many protons are in an atom of Oxygen?",
+                type: "open-response",
+                answer: "8"
+            },
+            {
+                question: "What is the general trend for atomic radius down a group?",
+                type: "open-response",
+                answer: "Increases"
+            },
+            {
+                question: "What is the molecular geometry of $BCl_3$?",
+                options: ["Linear", "Trigonal Planar", "Tetrahedral", "Trigonal Pyramidal"],
+                answer: "Trigonal Planar",
+                type: "multiple-choice"
+            },
+            {
+                question: "In a double displacement reaction, what often forms?",
+                type: "open-response",
+                answer: "Precipitate, gas, or water"
+            },
+            {
+                question: "What is the percent by mass of Oxygen in $H_2O$?",
+                type: "open-response",
+                answer: "88.8%"
+            },
+            {
+                question: "Which type of intermolecular force is the weakest?",
+                options: ["Hydrogen bonding", "Dipole-dipole forces", "London Dispersion Forces", "Ion-dipole forces"],
+                answer: "London Dispersion Forces",
+                type: "multiple-choice"
+            },
+            {
+                question: "What is the $pH$ of a solution with $[H^+] = 1.0 \\times 10^{-9} M$?",
+                type: "open-response",
+                answer: "9"
+            },
+            {
+                question: "What effect does increasing temperature have on the rate of most chemical reactions?",
+                type: "open-response",
+                answer: "Increases it"
+            },
+            {
+                question: "Which gas law combines Boyle's, Charles's, and Gay-Lussac's laws?",
+                type: "open-response",
+                answer: "Combined Gas Law"
+            },
+            {
+                question: "What is the charge of a bromide ion?",
+                type: "open-response",
+                answer: "-1"
+            },
+            {
+                question: "What is the name of the element with atomic number 11?",
+                type: "open-response",
+                answer: "Sodium"
+            },
+            {
+                question: "Which block of the periodic table contains the Alkali metals?",
+                type: "open-response",
+                answer: "s-block"
+            },
+            {
+                question: "What is the bond angle in a linear molecule?",
+                type: "open-response",
+                answer: "180 degrees"
+            },
+            {
+                question: "What is the oxidation number of an uncombined element?",
+                type: "open-response",
+                answer: "0"
+            },
+            {
+                question: "If you have 100 grams of a compound and 20 grams are Carbon, what is the percent by mass of Carbon?",
+                type: "open-response",
+                answer: "20%"
+            },
+            {
+                question: "What is the definition of a solute?",
+                type: "open-response",
+                answer: "The substance being dissolved in a solution."
+            },
+            {
+                question: "What is the $K_w$ (ion product of water) at 25$^\circ$C?",
+                type: "open-response",
+                answer: "$1.0 \\times 10^{-14}$"
+            },
+            {
+                question: "What is the function of a catalyst in a chemical reaction?",
+                type: "open-response",
+                answer: "Speeds up the reaction without being consumed."
+            },
+            {
+                question: "According to KMT, gas molecules have negligible _____.",
+                type: "open-response",
+                answer: "volume"
+            },
+            {
+                question: "What is the chemical symbol for iron?",
+                type: "open-response",
+                answer: "Fe"
+            },
+            {
+                question: "How many electrons are in a neutral atom of Fluorine?",
+                type: "open-response",
+                answer: "9"
+            },
+            {
+                question: "Which trend describes the energy required to remove an electron?",
+                options: ["Atomic radius", "Electronegativity", "Ionization energy", "Metallic character"],
+                answer: "Ionization energy",
+                type: "multiple-choice"
+            },
+            {
+                question: "What type of bond is formed when electrons are completely transferred?",
+                type: "open-response",
+                answer: "Ionic bond"
+            },
+            {
+                question: "In the reaction $2H_2O \\rightarrow 2H_2 + O_2$, what type of reaction is this?",
+                options: ["Synthesis", "Decomposition", "Combustion", "Single Displacement"],
+                answer: "Decomposition",
+                type: "multiple-choice"
+            },
+            {
+                question: "What is the empirical formula for $C_2H_4$?",
+                type: "open-response",
+                answer: "$CH_2$"
+            },
+            {
+                question: "Which colligative property describes the lowering of a solvent's freezing point?",
+                type: "open-response",
+                answer: "Freezing point depression"
+            },
+            {
+                question: "What is the $pOH$ of a solution with $pH = 4$?",
+                type: "open-response",
+                answer: "10"
+            },
+            {
+                question: "Is the formation of ice from water an endothermic or exothermic process?",
+                type: "open-response",
+                answer: "Exothermic"
+            },
+            {
+                question: "What is the name of the gas law that states volume and temperature are directly proportional at constant pressure and moles?",
+                type: "open-response",
+                answer: "Charles's Law"
+            },
+            {
+                question: "What is the chemical symbol for potassium?",
+                type: "open-response",
+                answer: "K"
+            },
+            {
+                question: "How many valence electrons does a noble gas typically have (excluding Helium)?",
+                type: "open-response",
+                answer: "8"
+            },
+            {
+                question: "What is the general trend for electronegativity across a period?",
+                type: "open-response",
+                answer: "Increases"
+            },
+            {
+                question: "A molecule is polar if it contains polar bonds and has an _____ shape.",
+                type: "open-response",
+                answer: "asymmetrical"
+            },
+            {
+                question: "What is the oxidation number of Oxygen in $H_2O_2$ (hydrogen peroxide)?",
+                type: "open-response",
+                answer: "-1"
+            },
+            {
+                question: "If the actual yield is greater than the theoretical yield, what does that imply?",
+                type: "open-response",
+                answer: "Error in measurement or impurities"
+            },
+            {
+                question: "What is the component of a solution that dissolves the solute?",
+                type: "open-response",
+                answer: "Solvent"
+            },
+            {
+                question: "What is the $pH$ scale range?",
+                type: "open-response",
+                answer: "0-14"
+            },
+            {
+                question: "What is the effect of increasing reactant concentration on reaction rate?",
+                type: "open-response",
+                answer: "Increases it"
+            },
+            {
+                question: "What is the relationship between pressure and volume for a gas at constant temperature and moles?",
+                type: "open-response",
+                answer: "Inversely proportional"
+            },
+            {
+                question: "What is the chemical symbol for silver?",
+                type: "open-response",
+                answer: "Ag"
+            },
+            {
+                question: "An atom that has gained electrons becomes a/an _____.",
+                type: "open-response",
+                answer: "anion"
+            },
+            {
+                question: "Which elements are typically found in the f-block of the periodic table?",
+                type: "open-response",
+                answer: "Lanthanides and Actinides"
+            },
+            {
+                question: "What is the electron geometry around a central atom with 4 electron domains (0 lone pairs)?",
+                type: "open-response",
+                answer: "Tetrahedral"
+            },
+            {
+                question: "What is the oxidation number of Fluorine in compounds?",
+                type: "open-response",
+                answer: "-1"
+            },
+            {
+                question: "If a compound has 80% Carbon and 20% Hydrogen by mass, and its molar mass is 30.0 g/mol, what is its molecular formula?",
+                type: "open-response",
+                answer: "$C_2H_6$"
+            },
+            {
+                question: "What is the freezing point depression constant for water ($K_f$)?",
+                type: "open-response",
+                answer: "1.86 $^\circ$C$\\cdot$kg/mol"
+            },
+            {
+                question: "According to Brønsted-Lowry, an acid is a proton ($H^+$) _____.",
+                type: "open-response",
+                answer: "donor"
+            },
+            {
+                question: "Does increasing the surface area of reactants generally increase or decrease reaction rate?",
+                type: "open-response",
+                answer: "Increase"
+            },
+            {
+                question: "What is the Ideal Gas Constant (R) in L$\cdot$atm/mol$\cdot$K?",
+                type: "open-response",
+                answer: "0.0821 L$\\cdot$atm/mol$\\cdot$K"
+            },
+            {
+                question: "What is the chemical symbol for calcium?",
+                type: "open-response",
+                answer: "Ca"
+            },
+            {
+                question: "What is the mass number of an atom with 17 protons and 18 neutrons?",
+                type: "open-response",
+                answer: "35"
+            },
+            {
+                question: "Which type of element is generally a good conductor of heat and electricity?",
+                options: ["Metal", "Nonmetal", "Metalloid", "Noble gas"],
+                answer: "Metal",
+                type: "multiple-choice"
+            },
+            {
+                question: "What is the name of the bond formed between two nonmetals?",
+                type: "open-response",
+                answer: "Covalent bond"
+            },
+            {
+                question: "What are the products of a complete combustion reaction of a hydrocarbon?",
+                type: "open-response",
+                answer: "$CO_2$ and $H_2O$"
+            },
+            {
+                question: "How many molecules are in 0.5 moles of $O_2$?",
+                type: "open-response",
+                answer: "$3.011 \\times 10^{23}$ molecules"
+            },
+            {
+                question: "What is the boiling point elevation constant for water ($K_b$)?",
+                type: "open-response",
+                answer: "0.512 $^\circ$C$\\cdot$kg/mol"
+            },
+            {
+                question: "What is the definition of a strong acid?",
+                type: "open-response",
+                answer: "An acid that completely dissociates in water."
+            },
+            {
+                question: "What is the effect of a catalyst on the activation energy of a reaction?",
+                type: "open-response",
+                answer: "Lowers it"
+            },
+            {
+                question: "If the temperature of a gas is decreased at constant pressure and moles, what happens to its volume?",
+                type: "open-response",
+                answer: "Decreases"
+            },
+            {
+                question: "What is the chemical symbol for lead?",
+                type: "open-response",
+                answer: "Pb"
+            },
+            {
+                question: "What is the atomic number of an element with 20 electrons in a neutral atom?",
+                type: "open-response",
+                answer: "20"
+            },
+            {
+                question: "Which group of elements is known for being very unreactive?",
+                type: "open-response",
+                answer: "Noble gases"
+            },
+            {
+                question: "What is the molecular geometry of a molecule with 3 bonding groups and 1 lone pair around the central atom?",
+                type: "open-response",
+                answer: "Trigonal pyramidal"
+            },
+            {
+                question: "In the reaction $Zn(s) + CuSO_4(aq) \\rightarrow ZnSO_4(aq) + Cu(s)$, which element is oxidized?",
+                type: "open-response",
+                answer: "Zn"
+            },
+            {
+                question: "A compound is 50% Sulfur and 50% Oxygen by mass. What is its empirical formula?",
+                type: "open-response",
+                answer: "$SO_2$"
+            },
+            {
+                question: "Which of the following is a homogeneous mixture?",
+                options: ["Sand and water", "Oil and water", "Saltwater", "Air (with visible dust)"],
+                answer: "Saltwater",
+                type: "multiple-choice"
+            },
+            {
+                question: "What is the $pH$ of a solution with $[OH^-] = 1.0 \\times 10^{-2} M$?",
+                type: "open-response",
+                answer: "12"
+            },
+            {
+                question: "What is the definition of an exothermic reaction?",
+                type: "open-response",
+                answer: "A reaction that releases heat energy into its surroundings."
+            },
+            {
+                question: "What is the name of the gas law that states pressure and temperature are directly proportional at constant volume and moles?",
+                type: "open-response",
+                answer: "Gay-Lussac's Law"
+            },
+            {
+                question: "What is the chemical symbol for mercury?",
+                type: "open-response",
+                answer: "Hg"
+            },
+            {
+                question: "How many electrons are in a $Cl^-$ ion?",
+                type: "open-response",
+                answer: "18"
+            },
+            {
+                question: "Which periodic trend generally increases as you move down a group?",
+                options: ["Electronegativity", "Ionization energy", "Atomic radius", "Nonmetallic character"],
+                answer: "Atomic radius",
+                type: "multiple-choice"
+            },
+            {
+                question: "What is the difference in electronegativity for a non-polar covalent bond?",
+                type: "open-response",
+                answer: "0.0 - 0.4"
+            },
+            {
+                question: "In the reaction $Al_2(SO_4)_3(aq) + 6NaOH(aq) \\rightarrow 2Al(OH)_3(s) + 3Na_2SO_4(aq)$, what is the precipitate?",
+                type: "open-response",
+                answer: "$Al(OH)_3$"
+            },
+            {
+                question: "If you have 5.0 moles of $H_2$ gas, what volume does it occupy at STP?",
+                type: "open-response",
+                answer: "112 L"
+            },
+            {
+                question: "What is the common term for the dissolving process?",
+                type: "open-response",
+                answer: "Solvation"
+            },
+            {
+                question: "What is the $pH$ of a solution with $[H^+] = 1.0 \\times 10^{-7} M$?",
+                type: "open-response",
+                answer: "7"
+            },
+            {
+                question: "What is the effect of increasing the concentration of reactants on the number of collisions?",
+                type: "open-response",
+                answer: "Increases it"
+            },
+            {
+                question: "According to KMT, what happens to kinetic energy during elastic collisions?",
+                type: "open-response",
+                answer: "It is conserved"
+            },
+            {
+                question: "What is the chemical symbol for Nitrogen?",
+                type: "open-response",
+                answer: "N"
+            },
+            {
+                question: "What is an isotope?",
+                type: "open-response",
+                answer: "Atoms of the same element with different numbers of neutrons."
+            },
+            {
+                question: "Which group contains the Noble Gases?",
+                type: "open-response",
+                answer: "Group 18"
+            },
+            {
+                question: "What is the molecular geometry of $H_2O$?",
+                type: "open-response",
+                answer: "Bent"
+            },
+            {
+                question: "Assign the oxidation number of Carbon in $CO_2$.",
+                type: "open-response",
+                answer: "+4"
+            },
+            {
+                question: "If 10.0 g of $H_2$ reacts with excess $O_2$ to produce $H_2O$, how many moles of $H_2O$ are produced?",
+                type: "open-response",
+                answer: "5.0 mol"
+            },
+            {
+                question: "What is the definition of molality?",
+                type: "open-response",
+                answer: "Moles of solute per kilogram of solvent."
+            },
+            {
+                question: "What is the definition of a Brønsted-Lowry acid?",
+                type: "open-response",
+                answer: "A proton ($H^+$) donor."
+            },
+            {
+                question: "What is the term for the energy change in a chemical reaction?",
+                type: "open-response",
+                answer: "Enthalpy"
+            },
+            {
+                question: "What is the temperature of a gas at absolute zero in Celsius?",
+                type: "open-response",
+                answer: "-273.15 $^\circ$C"
+            },
+            {
+                question: "What is the chemical symbol for phosphorus?",
+                type: "open-response",
+                answer: "P"
+            },
+            {
+                question: "How many protons are in an atom of Aluminum?",
+                type: "open-response",
+                answer: "13"
+            },
+            {
+                question: "Which block of the periodic table contains the Halogens?",
+                type: "open-response",
+                answer: "p-block"
+            },
+            {
+                question: "What is the ideal bond angle for a trigonal planar molecule?",
+                type: "open-response",
+                answer: "120 degrees"
+            },
+            {
+                question: "In the reaction $2Al + 3Br_2 \\rightarrow 2AlBr_3$, what type of reaction is this?",
+                type: "open-response",
+                answer: "Synthesis"
+            },
+            {
+                question: "What is the theoretical yield?",
+                type: "open-response",
+                answer: "The maximum amount of product that can be formed from given amounts of reactants."
+            },
+            {
+                question: "What is the van 't Hoff factor (i) for $C_6H_{12}O_6$ (glucose)?",
+                type: "open-response",
+                answer: "1"
+            },
+            {
+                question: "What is the $pH$ of a solution with $[OH^-] = 1.0 \\times 10^{-10} M$?",
+                type: "open-response",
+                answer: "4"
+            },
+            {
+                question: "What is the activated complex in a reaction?",
+                type: "open-response",
+                answer: "A temporary, unstable arrangement of atoms at the peak of the activation energy barrier."
+            },
+            {
+                question: "If the pressure of a gas is doubled at constant temperature and moles, what happens to its volume?",
+                type: "open-response",
+                answer: "Halves"
+            },
+            {
+                question: "What is the chemical symbol for Silicon?",
+                type: "open-response",
+                answer: "Si"
+            },
+            {
+                question: "What is the mass number of an atom with 8 protons and 8 neutrons?",
+                type: "open-response",
+                answer: "16"
+            },
+            {
+                question: "Which of the following is a nonmetal?",
+                options: ["Iron", "Copper", "Sulfur", "Gold"],
+                answer: "Sulfur",
+                type: "multiple-choice"
+            },
+            {
+                question: "What type of bond is formed between two atoms with a large electronegativity difference, resulting in a complete transfer of electrons?",
+                type: "open-response",
+                answer: "Ionic bond"
+            },
+            {
+                question: "Balance the following equation: $CH_4 + O_2 \\rightarrow CO_2 + H_2O$",
+                type: "open-response",
+                answer: "$CH_4 + 2O_2 \\rightarrow CO_2 + 2H_2O$"
+            },
+            {
+                question: "How many grams are in 1.5 moles of $H_2O$?",
+                type: "open-response",
+                answer: "27.0 g"
+            },
+            {
+                question: "What is the definition of boiling point elevation?",
+                type: "open-response",
+                answer: "The increase in the boiling point of a solvent when a solute is added."
+            },
+            {
+                question: "What is the definition of a weak base?",
+                type: "open-response",
+                answer: "A base that does not completely dissociate in water."
+            },
+            {
+                question: "Does a positive $\\Delta G$ indicate a spontaneous or non-spontaneous reaction?",
+                type: "open-response",
+                answer: "Non-spontaneous"
+            },
+            {
+                question: "What is the name of the gas law that states volume and moles are directly proportional at constant temperature and pressure?",
+                type: "open-response",
+                answer: "Avogadro's Law"
+            },
+            {
+                question: "What is the chemical symbol for Chlorine?",
+                type: "open-response",
+                answer: "Cl"
+            },
+            {
+                question: "What is the difference between atomic number and mass number?",
+                type: "open-response",
+                answer: "Atomic number is protons, mass number is protons + neutrons."
+            },
+            {
+                question: "Which elements are typically found in the d-block of the periodic table?",
+                type: "open-response",
+                answer: "Transition metals"
+            },
+            {
+                question: "What is the molecular geometry of $SF_6$?",
+                type: "open-response",
+                answer: "Octahedral"
+            },
+            {
+                question: "What is the oxidation number of an alkali metal in a compound?",
+                type: "open-response",
+                answer: "+1"
+            },
+            {
+                question: "If a reaction has a 90% yield and the theoretical yield is 100 g, what is the actual yield?",
+                type: "open-response",
+                answer: "90 g"
+            },
+            {
+                question: "What is a saturated solution?",
+                type: "open-response",
+                answer: "A solution containing the maximum amount of solute that can be dissolved at a given temperature."
+            },
+            {
+                question: "What is the relationship between $[H^+]$ and $[OH^-]$ in pure water?",
+                type: "open-response",
+                answer: "They are equal ($1.0 \\times 10^{-7} M$)"
+            },
+            {
+                question: "What is the effect of a change in pressure on the rate of a reaction involving only solids and liquids?",
+                type: "open-response",
+                answer: "Little to no effect"
+            },
+            {
+                question: "What is the name of the gas law that states pressure and volume are inversely proportional at constant temperature and moles?",
+                type: "open-response",
+                answer: "Boyle's Law"
+            },
+            {
+                question: "What is the chemical symbol for Bromine?",
+                type: "open-response",
+                answer: "Br"
+            },
+            {
+                question: "How many neutrons are in an atom of Uranium-238 ($^{238}U$)?",
+                type: "open-response",
+                answer: "146"
+            },
+            {
+                question: "Which of the following elements has the highest electronegativity?",
+                options: ["Cesium", "Lithium", "Fluorine", "Iodine"],
+                answer: "Fluorine",
+                type: "multiple-choice"
+            },
+            {
+                question: "What is the definition of a polar molecule?",
+                type: "open-response",
+                answer: "A molecule with an uneven distribution of charge, resulting in a net dipole moment."
+            },
+            {
+                question: "What is the oxidation number of a Group 2 metal in a compound?",
+                type: "open-response",
+                answer: "+2"
+            },
+            {
+                question: "How many grams are in 1 mole of $NaCl$?",
+                type: "open-response",
+                answer: "58.44 g"
+            },
+            {
+                question: "What is an unsaturated solution?",
+                type: "open-response",
+                answer: "A solution containing less solute than can be dissolved at a given temperature."
+            },
+            {
+                question: "What is the definition of $pOH$?",
+                type: "open-response",
+                answer: "$pOH = -log[OH^-]$"
+            },
+            {
+                question: "What is the effect of temperature on the average kinetic energy of gas molecules?",
+                type: "open-response",
+                answer: "Directly proportional"
+            },
+            {
+                question: "What is the common name for $NH_3$?",
+                type: "open-response",
+                answer: "Ammonia"
+            },
+            {
+                question: "What is the chemical symbol for Copper?",
+                type: "open-response",
+                answer: "Cu"
+            },
+            {
+                question: "How many protons are in an atom of Sulfur?",
+                type: "open-response",
+                answer: "16"
+            },
+            {
+                question: "Which periodic trend describes the ability of an atom to attract electrons in a chemical bond?",
+                type: "open-response",
+                answer: "Electronegativity"
+            },
+            {
+                question: "What is the name of the theory that explains how atoms are rearranged in chemical reactions?",
+                type: "open-response",
+                answer: "Dalton's Atomic Theory"
+            },
+            {
+                question: "What is the formula for calculating percent yield?",
+                type: "open-response",
+                answer: "$(Actual Yield / Theoretical Yield) \\times 100\\%$"
+            },
+            {
+                question: "What is the definition of a suspension?",
+                type: "open-response",
+                answer: "A heterogeneous mixture in which solute particles are large enough to settle out."
+            },
+            {
+                question: "What is the definition of an acid-base indicator?",
+                type: "open-response",
+                answer: "A substance that changes color in response to a change in pH."
+            },
+            {
+                question: "What is the term for the overall energy change in a chemical reaction?",
+                type: "open-response",
+                answer: "Enthalpy change"
+            },
+            {
+                question: "What is the relationship between temperature and volume for a gas at constant pressure and moles?",
+                type: "open-response",
+                answer: "Directly proportional"
+            }
+        ];
+
+        // Function to render MathJax equations
+        function renderMathJax() {
+            try {
+                if (typeof MathJax !== 'undefined') {
+                    MathJax.typesetPromise().then(() => {
+                        // MathJax has finished typesetting
+                    }).catch((err) => console.error('MathJax typesetting failed:', err));
+                }
+            } catch (error) {
+                console.error("Error rendering MathJax:", error);
+            }
+        }
+
+        // Function to display the current question
+        function displayQuestion() {
+            feedbackDisplay.textContent = ''; // Clear previous feedback
+            optionsContainer.innerHTML = ''; // Clear previous options
+            
+            // Reset button states
+            nextQuestionBtn.disabled = true;
+            // The global gradeAnswerBtn is removed, so no need to hide it here.
+            prevQuestionBtn.classList.toggle('hidden', currentQuestionIndex === 0);
+
+            if (currentQuestionIndex < quizQuestions.length) {
+                const question = quizQuestions[currentQuestionIndex];
+                questionNumberDisplay.textContent = `Question ${currentQuestionIndex + 1} of ${quizQuestions.length}`;
+                questionTextDisplay.innerHTML = question.question;
+
+                if (question.type === "multiple-choice") {
+                    const shuffledOptions = [...question.options].sort(() => Math.random() - 0.5);
+
+                    shuffledOptions.forEach((option, index) => {
+                        const label = document.createElement('label');
+                        label.classList.add('quiz-option-label');
+                        label.htmlFor = `option-${index}`;
+
+                        const radio = document.createElement('input');
+                        radio.type = 'radio';
+                        radio.name = 'quizOption';
+                        radio.id = `option-${index}`;
+                        radio.value = option;
+                        radio.dataset.option = option;
+
+                        const optionTextSpan = document.createElement('span');
+                        optionTextSpan.innerHTML = option;
+
+                        label.appendChild(radio);
+                        label.appendChild(optionTextSpan);
+                        
+                        label.addEventListener('click', () => {
+                            Array.from(optionsContainer.querySelectorAll('input[type="radio"]')).forEach(r => r.checked = false);
+                            radio.checked = true;
+                            checkAnswer(radio.value, question.answer, question.type);
+                            nextQuestionBtn.disabled = false; // Enable next button immediately for MC
+                        });
+
+                        optionsContainer.appendChild(label);
+                    });
+                    // If already answered, set selected radio and enable next button
+                    if (userAnswers[currentQuestionIndex]) {
+                        const savedAnswer = userAnswers[currentQuestionIndex].userAnswer;
+                        const selectedRadio = optionsContainer.querySelector(`input[value="${savedAnswer}"]`);
+                        if (selectedRadio) {
+                            selectedRadio.checked = true;
+                            // Re-apply styling and feedback for MC
+                            checkAnswer(selectedRadio.value, question.answer, question.type, true);
+                            nextQuestionBtn.disabled = false;
+                        }
+                    }
+
+                    // Remove any dynamically created grade button if navigating from open-response
+                    const existingGradeButton = document.getElementById('gradeAnswerButtonForOpenResponse');
+                    if (existingGradeButton) {
+                        existingGradeButton.remove();
+                    }
+                    nextQuestionBtn.classList.remove('flex-grow'); // Reset flex-grow if it was set for open-response
+                    nextQuestionBtn.classList.add('ml-4'); // Add back ml-4 for spacing next to prev button
+
+                } else if (question.type === "open-response") {
+                    const inputAndGradeBtnContainer = document.createElement('div');
+                    inputAndGradeBtnContainer.classList.add('flex', 'items-center', 'space-x-4', 'w-full');
+
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.classList.add('quiz-input-text', 'flex-grow');
+                    input.placeholder = 'Type your answer here...';
+                    input.id = 'openResponseInput';
+                    inputAndGradeBtnContainer.appendChild(input);
+
+                    const gradeButtonForOpenResponse = document.createElement('button');
+                    gradeButtonForOpenResponse.id = 'gradeAnswerButtonForOpenResponse'; // Unique ID for this button
+                    gradeButtonForOpenResponse.classList.add('quiz-button', 'quiz-button-primary');
+                    gradeButtonForOpenResponse.textContent = 'Grade Answer';
+                    inputAndGradeBtnContainer.appendChild(gradeButtonForOpenResponse);
+
+                    optionsContainer.appendChild(inputAndGradeBtnContainer);
+
+                    // Adjust next/prev button layout for open-response
+                    nextQuestionBtn.classList.remove('ml-4'); // Remove margin
+                    nextQuestionBtn.classList.add('flex-grow'); // Make it span
+
+                    input.addEventListener('input', () => {
+                        gradeButtonForOpenResponse.disabled = input.value.trim() === '';
+                    });
+
+                    gradeButtonForOpenResponse.addEventListener('click', () => {
+                        if (input.value.trim() !== '') {
+                            checkAnswer(input.value, quizQuestions[currentQuestionIndex].answer, question.type);
+                            nextQuestionBtn.disabled = false; // Enable next button after grading
+                        } else {
+                            feedbackDisplay.textContent = 'Please enter an answer before grading.';
+                            feedbackDisplay.classList.add('text-red-600');
+                        }
+                    });
+                    
+                    if (userAnswers[currentQuestionIndex]) {
+                        input.value = userAnswers[currentQuestionIndex].userAnswer;
+                        // Re-check for display purposes, but don't re-increment score
+                        checkAnswer(input.value, question.answer, question.type, true);
+                        input.disabled = true; // Keep input disabled if already answered
+                        gradeButtonForOpenResponse.disabled = true; // Keep grade button disabled if already answered
+                        nextQuestionBtn.disabled = false; // Enable next button if already answered
+                    } else {
+                        gradeButtonForOpenResponse.disabled = true; // Initially disable grade button for new open-response
+                    }
+                }
+                renderMathJax();
+            } else {
+                showResults();
+            }
+        }
+
+        // Function to check the answer and provide feedback
+        function checkAnswer(userAnswer, correctAnswer, questionType, isRecheck = false) {
+            let isCorrect = false;
+            let normalizedUserAnswer = userAnswer.trim();
+            let normalizedCorrectAnswer = correctAnswer.trim();
+
+            if (questionType === "multiple-choice") {
+                isCorrect = (normalizedUserAnswer === normalizedCorrectAnswer);
+                Array.from(optionsContainer.children).forEach(label => {
+                    const radio = label.querySelector('input[type="radio"]');
+                    radio.disabled = true;
+                    label.classList.add('disabled');
+
+                    if (label.dataset.option === normalizedCorrectAnswer) {
+                        label.classList.add('correct');
+                    } else if (label.dataset.option === normalizedUserAnswer && !isCorrect) {
+                        label.classList.add('incorrect');
+                    }
+                });
+            } else if (questionType === "open-response") {
+                isCorrect = (normalizedUserAnswer.toLowerCase() === normalizedCorrectAnswer.toLowerCase());
+                const inputElement = document.getElementById('openResponseInput');
+                const gradeButton = document.getElementById('gradeAnswerButtonForOpenResponse'); // Get dynamically created button
+                if (inputElement) inputElement.disabled = true;
+                if (gradeButton) gradeButton.disabled = true; // Disable grade button after checking
+
+                if (isCorrect) {
+                    if (inputElement) inputElement.classList.add('border-green-500', 'bg-green-50');
+                } else {
+                    if (inputElement) inputElement.classList.add('border-red-500', 'bg-red-50');
+                }
+            }
+
+            // Score update logic remains the same
+            if (!isRecheck) {
+                if (isCorrect && (!userAnswers[currentQuestionIndex] || userAnswers[currentQuestionIndex].isCorrect === false)) {
+                    score++;
+                } else if (!isCorrect && userAnswers[currentQuestionIndex] && userAnswers[currentQuestionIndex].isCorrect === true) {
+                    score--;
+                }
+            }
+
+            userAnswers[currentQuestionIndex] = {
+                userAnswer: userAnswer,
+                isCorrect: isCorrect
+            };
+
+            if (isCorrect) {
+                feedbackDisplay.textContent = 'Correct!';
+                feedbackDisplay.classList.remove('text-red-600');
+                feedbackDisplay.classList.add('text-green-600');
+            } else {
+                feedbackDisplay.textContent = `Incorrect. The correct answer was: "${correctAnswer}"`;
+                feedbackDisplay.classList.remove('text-green-600');
+                feedbackDisplay.classList.add('text-red-600');
+            }
+        }
+
+        // Function to grade the open-response answer
+        function gradeAnswer() {
+            const inputElement = document.getElementById('openResponseInput');
+            if (inputElement && inputElement.value.trim() !== '') {
+                checkAnswer(inputElement.value, quizQuestions[currentQuestionIndex].answer, quizQuestions[currentQuestionIndex].type);
+                nextQuestionBtn.disabled = false; // Enable next button after grading
+            } else {
+                feedbackDisplay.textContent = 'Please enter an answer before grading.';
+                feedbackDisplay.classList.add('text-red-600');
+            }
+        }
+
+        // Navigate to the next question
+        function nextQuestion() {
+            // If it's an open-response question and no answer is entered, prevent moving forward
+            if (quizQuestions[currentQuestionIndex].type === "open-response" && (!userAnswers[currentQuestionIndex] || !userAnswers[currentQuestionIndex].userAnswer.trim())) {
+                feedbackDisplay.textContent = 'Please grade your answer before proceeding.';
+                feedbackDisplay.classList.add('text-red-600');
+                return;
+            }
+
+            currentQuestionIndex++;
+            if (currentQuestionIndex < quizQuestions.length) {
+                displayQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        // Navigate to the previous question
+        function prevQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                displayQuestion();
+                // Re-apply feedback and styling for the previous question if answered
+                if (userAnswers[currentQuestionIndex]) {
+                    const question = quizQuestions[currentQuestionIndex];
+                    checkAnswer(userAnswers[currentQuestionIndex].userAnswer, question.answer, question.type, true);
+                }
+            }
+        }
+
+        // Show quiz results
+        function showResults() {
+            quizDisplay.classList.add('hidden');
+            quizResults.classList.remove('hidden');
+            scoreDisplay.textContent = score;
+            totalQuestionsDisplay.textContent = quizQuestions.length;
+        }
+
+        // Restart the quiz
+        function restartQuiz() {
+            currentQuestionIndex = 0;
+            score = 0;
+            userAnswers = []; // Clear stored answers
+            quizResults.classList.add('hidden');
+            quizDisplay.classList.remove('hidden');
+            displayQuestion();
+        }
+
+        // Event Listeners
+        nextQuestionBtn.addEventListener('click', nextQuestion);
+        prevQuestionBtn.addEventListener('click', prevQuestion);
+        // The gradeAnswerBtn listener is now attached to the dynamically created button
+        restartQuizBtn.addEventListener('click', restartQuiz);
+
+        // Initialize quiz on page load
+        window.onload = displayQuestion;
+    </script>
+</body>
+</html>
