@@ -443,7 +443,8 @@ const PeriodicTable: React.FC = () => {
             href="#" 
             onClick={(e) => {
               e.preventDefault();
-              window.open('https://en.wikipedia.org/wiki/Periodic_table', '_blank');
+              window.open('https://amend09.github.io/periodic-portal/chem_guide', '_blank');
+              window.open('https://amend09.github.io/periodic-portal/MSTCHEM.pdf', '_blank');
             }}
             className="px-3 py-1 sm:px-4 sm:py-2 bg-secondary/20 hover:bg-secondary/30 rounded-md text-xs sm:text-sm font-medium flex items-center gap-1 sm:gap-2 transition-colors"
           >
