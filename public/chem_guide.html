@@ -78,6 +78,25 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #94a3b8; /* Tailwind gray-400 */
         }
+
+        /* Quiz specific styles */
+        .quiz-option-label {
+            /* Ensure vertical stacking by not forcing horizontal flex alignment if it causes issues */
+            @apply flex items-center p-3 rounded-lg border border-stone-300 mb-2 transition-colors duration-200 cursor-pointer;
+            @apply hover:bg-teal-100 hover:border-teal-500;
+        }
+        .quiz-option-label.correct {
+            @apply bg-green-200 border-green-500;
+        }
+        .quiz-option-label.incorrect {
+            @apply bg-red-200 border-red-500;
+        }
+        .quiz-option-label.disabled {
+            @apply opacity-75 cursor-not-allowed;
+        }
+        .quiz-option-label input[type="radio"] {
+            @apply mr-3;
+        }
     </style>
 </head>
 <body class="bg-stone-100 text-stone-800">
@@ -98,6 +117,7 @@
             <button data-target="acids_bases" class="nav-button w-full text-left p-2 rounded-lg hover:bg-teal-500 hover:text-white transition-colors duration-200">Acids, Bases & pH</button>
             <button data-target="thermo_kinetics" class="nav-button w-full text-left p-2 rounded-lg hover:bg-teal-500 hover:text-white transition-colors duration-200">Thermo & Kinetics</button>
             <button data-target="gases" class="nav-button w-full text-left p-2 rounded-lg hover:bg-teal-500 hover:text-white transition-colors duration-200">Gases & Gas Laws</button>
+            <button data-target="quiz" class="nav-button w-full text-left p-2 rounded-lg hover:bg-teal-500 hover:text-white transition-colors duration-200">Take the Quiz!</button>
         </nav>
 
         <main class="flex-1 p-6 md:p-10 bg-white shadow-lg rounded-lg m-0 md:m-4 overflow-y-auto">
@@ -795,7 +815,7 @@
                         <ol class="list-decimal list-inside ml-4">
                             <li><strong>Sufficient Energy</strong>: The colliding particles must possess a minimum amount of kinetic energy, known as the activation energy ($E_a$). This energy is needed to break existing bonds and allow new bonds to form.</li>
                             <li><strong>Correct Orientation</strong>: The colliding particles must be oriented in space in a way that allows the necessary bonds to break and form. If they collide with an improper orientation, they will likely just bounce off each other, even if they have sufficient energy.</li>
-                        </ol>
+                        </ul>
                     </div>
                 </div>
             </div>
@@ -816,7 +836,7 @@
                             <li><strong>Collisions</strong>: Collisions between gas molecules and between molecules and the container walls are perfectly elastic. This means that kinetic energy is conserved during collisions (though it can be transferred between particles).</li>
                             <li><strong>Negligible Intermolecular Forces</strong>: There are essentially no attractive or repulsive forces between gas molecules. They act independently of one another.</li>
                             <li><strong>Temperature and Kinetic Energy</strong>: The average kinetic energy of gas molecules is directly proportional to the absolute temperature (in Kelvin) of the gas. At a given temperature, all gases have the same average kinetic energy.</li>
-                        </ol>
+                        </ul>
                     </div>
                 </div>
                 <div class="qna-item mb-4 p-4 border border-stone-200 rounded-lg shadow-sm">
@@ -836,7 +856,27 @@
                     </div>
                 </div>
             </div>
-            </main>
+
+            <div id="quiz" class="content-section">
+                <h1 class="text-3xl font-bold text-teal-700 mb-6">Chemistry Quiz!</h1>
+                <p class="text-md text-stone-600 mb-6">Test your knowledge with these chemistry questions. Good luck!</p>
+                
+                <div id="quizContainer" class="p-6 border border-stone-200 rounded-lg shadow-md">
+                    <div id="questionDisplay" class="text-xl font-semibold text-stone-800 mb-4"></div>
+                    <div id="optionsContainer" class="space-y-2 mb-4">
+                        </div>
+                    <div id="feedback" class="text-lg font-medium mb-4"></div>
+                    <button id="nextQuestionBtn" class="bg-teal-600 text-white px-6 py-3 rounded-lg shadow-md hover:bg-teal-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed">Next Question</button>
+                    <button id="restartQuizBtn" class="bg-stone-500 text-white px-6 py-3 rounded-lg shadow-md hover:bg-stone-600 transition-colors duration-200 mt-4 hidden">Restart Quiz</button>
+                </div>
+                <div id="quizResults" class="hidden mt-6 p-6 border border-stone-200 rounded-lg shadow-md text-center">
+                    <h2 class="text-2xl font-bold text-teal-700 mb-4">Quiz Complete!</h2>
+                    <p class="text-xl text-stone-800 mb-4">You scored <span id="scoreDisplay" class="font-bold"></span> out of <span id="totalQuestionsDisplay" class="font-bold"></span>.</p>
+                    <button id="restartQuizBtnEnd" class="bg-teal-600 text-white px-6 py-3 rounded-lg shadow-md hover:bg-teal-700 transition-colors duration-200">Restart Quiz</button>
+                </div>
+            </div>
+
+        </main>
     </div>
 
     <script>
@@ -846,11 +886,40 @@
         const searchInput = document.getElementById('searchInput');
         const qnaItems = document.querySelectorAll('.qna-item');
 
+        // Quiz elements
+        const quizContainer = document.getElementById('quizContainer');
+        const questionDisplay = document.getElementById('questionDisplay');
+        const optionsContainer = document.getElementById('optionsContainer');
+        const feedback = document.getElementById('feedback');
+        const nextQuestionBtn = document.getElementById('nextQuestionBtn');
+        const restartQuizBtn = document.getElementById('restartQuizBtn'); // This one is for the middle of the quiz
+        const quizResults = document.getElementById('quizResults');
+        const scoreDisplay = document.getElementById('scoreDisplay');
+        const totalQuestionsDisplay = document.getElementById('totalQuestionsDisplay');
+        const restartQuizBtnEnd = document.getElementById('restartQuizBtnEnd'); // This one is for the end of the quiz
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let quizQuestions = []; // Will be populated later
+
+        // Function to render MathJax equations
+        function renderMathJax() {
+            if (typeof MathJax !== 'undefined') {
+                MathJax.typesetPromise().then(() => {
+                    // MathJax has finished typesetting
+                }).catch((err) => console.error('MathJax typesetting failed:', err));
+            }
+        }
+
         function showSection(targetId) {
             contentSections.forEach(section => {
                 section.classList.remove('active');
                 if (section.id === targetId) {
                     section.classList.add('active');
+                    // If the quiz section is activated, start the quiz
+                    if (targetId === 'quiz') {
+                        startQuiz();
+                    }
                 }
             });
         }
@@ -891,16 +960,8 @@
                 // If searching, hide all sections initially except a "search results" placeholder or just filter items directly
                 // For simplicity here, we'll just filter items and assume user is in a section or we show all matching items
                 // A more sophisticated approach might involve a dedicated search results view.
-                showSection('search-results-placeholder'); // You'd need to create this section or handle display differently
-            } else {
-                // If search is cleared, show the home section or last active section
-                 const currentActive = document.querySelector('.nav-button.bg-teal-600');
-                 if (currentActive) {
-                    showSection(currentActive.dataset.target);
-                 } else {
-                    showSection('home');
-                 }
-            }
+                // showSection('search-results-placeholder'); // You'd need to create this section or handle display differently
+            } 
 
             qnaItems.forEach(item => {
                 const questionText = item.querySelector('.accordion-button span:first-child').textContent.toLowerCase();
@@ -929,6 +990,15 @@
                  } else {
                     showSection('home'); // Default to home
                  }
+            } else {
+                // When searching, make sure the current section is active to show results
+                const currentActiveNav = document.querySelector('.nav-button.bg-teal-600');
+                if (currentActiveNav) {
+                    // Do nothing, assume current section is active and filtering is happening within it
+                } else {
+                    // If no section is active, perhaps activate 'home' or a dedicated search section
+                    showSection('home'); // Or create a 'search-results' section
+                }
             }
         });
         
@@ -1008,6 +1078,282 @@
             createTrendChart('ionizationEnergyChart', 'Ionization Energy', 1, -1);
         }
 
+
+        // --- Quiz Logic ---
+        function initializeQuizQuestions() {
+            // This array will hold your 100 quiz questions.
+            // I'm providing a diverse sample here. You can expand this array to 100 questions.
+            quizQuestions = [
+                {
+                    question: "Which state of matter has a definite shape and definite volume?",
+                    options: ["Liquid", "Solid", "Gas", "Plasma"],
+                    answer: "Solid",
+                    type: "multiple-choice"
+                },
+                {
+                    question: "What is the name of a positive ion?",
+                    options: ["Anion", "Cation", "Isotope", "Molecule"],
+                    answer: "Cation",
+                    type: "multiple-choice"
+                },
+                {
+                    question: "What is the chemical formula for Dihydrogen monoxide?",
+                    options: ["CO2", "H2O", "CH4", "NaCl"],
+                    answer: "H2O",
+                    type: "multiple-choice"
+                },
+                {
+                    question: "The process of a solid turning directly into a gas is called sublimation.",
+                    options: ["True", "False"],
+                    answer: "True",
+                    type: "true-false"
+                },
+                {
+                    question: "Which of the following is a chemical change?",
+                    options: ["Melting ice", "Cutting paper", "Burning wood", "Dissolving sugar"],
+                    answer: "Burning wood",
+                    type: "multiple-choice"
+                },
+                {
+                    question: "When multiplying or dividing significant figures, the answer should have the same number of significant figures as the value with the _____ significant figures.",
+                    options: ["most", "least", "exact", "average"],
+                    answer: "least",
+                    type: "multiple-choice"
+                },
+                {
+                    question: "The formula for density is $D = m/v$.",
+                    options: ["True", "False"],
+                    answer: "True",
+                    type: "true-false"
+                },
+                {
+                    question: "What protective equipment is explicitly mentioned for eyes in the lab?",
+                    options: ["Gloves", "Lab coat", "Goggles/Safety Glasses", "Face shield"],
+                    answer: "Goggles/Safety Glasses",
+                    type: "multiple-choice"
+                },
+                {
+                    question: "The atomic number (Z) represents the number of _____ in an atom's nucleus.",
+                    options: ["neutrons", "electrons", "protons", "nucleons"],
+                    answer: "protons",
+                    type: "multiple-choice"
+                },
+                {
+                    question: "An isotope has the same number of protons but a different number of neutrons.",
+                    options: ["True", "False"],
+                    answer: "True",
+                    type: "true-false"
+                },
+                {
+                    question: "In the electron configuration 3s$^2$3p$^3$, what does the '3' represent?",
+                    options: ["Number of electrons", "Sublevel type", "Principal energy level", "Orbital shape"],
+                    answer: "Principal energy level",
+                    type: "multiple-choice"
+                },
+                {
+                    question: "Who discovered the electron using cathode ray tubes?",
+                    options: ["John Dalton", "Ernest Rutherford", "J.J. Thomson", "Niels Bohr"],
+                    answer: "J.J. Thomson",
+                    type: "multiple-choice"
+                },
+                {
+                    question: "Which group on the periodic table contains the Alkali metals?",
+                    options: ["Group 1", "Group 2", "Group 17", "Group 18"],
+                    answer: "Group 1",
+                    type: "multiple-choice"
+                },
+                {
+                    question: "Atomic radius generally increases across a period (left to right).",
+                    options: ["True", "False"],
+                    answer: "False", // It decreases across a period
+                    type: "true-false"
+                },
+                {
+                    question: "What is the trend for electronegativity across a period (left to right)?",
+                    options: ["Increases", "Decreases", "Stays the same", "Varies unpredictably"],
+                    answer: "Increases",
+                    type: "multiple-choice"
+                },
+                {
+                    question: "Elements in the same group have similar chemical properties due to having the same number of _____.",
+                    options: ["protons", "neutrons", "valence electrons", "total electrons"],
+                    answer: "valence electrons",
+                    type: "multiple-choice"
+                },
+                {
+                    question: "A chemical bond formed by the complete transfer of electrons is called a/an _____ bond.",
+                    options: ["covalent", "metallic", "ionic", "hydrogen"],
+                    answer: "ionic",
+                    type: "multiple-choice"
+                },
+                {
+                    question: "A molecule with polar bonds can still be nonpolar if its molecular shape is symmetrical.",
+                    options: ["True", "False"],
+                    answer: "True",
+                    type: "true-false"
+                },
+                {
+                    question: "What does VSEPR stand for?",
+                    options: ["Valence Shell Electron Pair Repulsion", "Vapor-Solid Equilibrium Phase Rule", "Variable Structure Electron Proton Ratio", "Valence Stability Energy Principle Rule"],
+                    answer: "Valence Shell Electron Pair Repulsion",
+                    type: "multiple-choice"
+                },
+                {
+                    question: "Which type of reaction involves two or more simple substances combining to form a more complex substance?",
+                    options: ["Decomposition", "Single Displacement", "Synthesis", "Combustion"],
+                    answer: "Synthesis",
+                    type: "multiple-choice"
+                },
+                {
+                    question: "Oxidation is the _____ of electrons.",
+                    options: ["gain", "loss", "sharing", "transfer"],
+                    answer: "loss",
+                    type: "multiple-choice"
+                },
+                {
+                    question: "The activity series helps predict if a single displacement reaction will occur.",
+                    options: ["True", "False"],
+                    answer: "True",
+                    type: "true-false"
+                },
+                {
+                    question: "What is the unit for molarity?",
+                    options: ["moles/kg", "grams/mol", "moles/L", "liters/mol"],
+                    answer: "moles/L",
+                    type: "multiple-choice"
+                },
+                {
+                    question: "Hydrogen bonding is a special, strong type of dipole-dipole interaction.",
+                    options: ["True", "False"],
+                    answer: "True",
+                    type: "true-false"
+                },
+                {
+                    question: "According to the Arrhenius definition, a base generates which ions in water?",
+                    options: ["H+", "OH-", "Cl-", "Na+"],
+                    answer: "OH-",
+                    type: "multiple-choice"
+                }
+            ];
+        }
+
+
+        function startQuiz() {
+            initializeQuizQuestions(); // Populate quizQuestions array
+            currentQuestionIndex = 0;
+            score = 0;
+            quizContainer.classList.remove('hidden');
+            quizResults.classList.add('hidden');
+            nextQuestionBtn.textContent = 'Next Question';
+            nextQuestionBtn.disabled = true; // Disable next button until answer is selected
+            restartQuizBtn.classList.add('hidden'); // Hide restart button during quiz
+            displayQuestion();
+        }
+
+        function displayQuestion() {
+            feedback.textContent = ''; // Clear previous feedback
+            optionsContainer.innerHTML = ''; // Clear previous options
+            nextQuestionBtn.disabled = true; // Disable next button
+
+            if (currentQuestionIndex < quizQuestions.length) {
+                const question = quizQuestions[currentQuestionIndex];
+                questionDisplay.innerHTML = `${currentQuestionIndex + 1}. ${question.question}`;
+
+                // Shuffle options for multiple-choice questions
+                const shuffledOptions = [...question.options];
+                if (question.type === "multiple-choice") {
+                    for (let i = shuffledOptions.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [shuffledOptions[i], shuffledOptions[j]] = [shuffledOptions[j], shuffledOptions[i]];
+                    }
+                }
+
+                shuffledOptions.forEach((option, index) => {
+                    const label = document.createElement('label');
+                    label.classList.add('quiz-option-label');
+                    label.htmlFor = `option-${index}`; // Associate label with radio button
+
+                    const radio = document.createElement('input');
+                    radio.type = 'radio';
+                    radio.name = 'quizOption'; // All radio buttons for a question share the same name
+                    radio.id = `option-${index}`;
+                    radio.value = option; // Store the option text as the value
+                    radio.dataset.option = option; // Also store in dataset for easy access
+
+                    const optionTextSpan = document.createElement('span');
+                    // Removed the 'optionLabels[index].' prefix
+                    optionTextSpan.innerHTML = option; // Display only the option text
+
+                    label.appendChild(radio);
+                    label.appendChild(optionTextSpan);
+                    
+                    // Add event listener to the label for easier clicking
+                    label.addEventListener('click', (event) => {
+                        // Prevent default radio button click action if clicking the label directly
+                        if (event.target === label || event.target === optionTextSpan) {
+                            radio.checked = true; // Manually check the radio button
+                        }
+                        checkAnswer(radio, question.answer);
+                    });
+
+                    optionsContainer.appendChild(label);
+                });
+                renderMathJax(); // Render MathJax for the new question and options
+            } else {
+                showResults();
+            }
+        }
+
+        function checkAnswer(selectedRadio, correctAnswer) {
+            // Disable all radio buttons and apply styling to their labels
+            Array.from(optionsContainer.children).forEach(label => {
+                const radio = label.querySelector('input[type="radio"]');
+                radio.disabled = true;
+                label.classList.add('disabled'); // Add disabled class to label
+
+                if (radio.dataset.option === correctAnswer) {
+                    label.classList.add('correct');
+                } else {
+                    label.classList.add('incorrect');
+                }
+            });
+
+            if (selectedRadio.dataset.option === correctAnswer) {
+                feedback.textContent = 'Correct!';
+                feedback.classList.remove('text-red-600');
+                feedback.classList.add('text-green-600');
+                score++;
+            } else {
+                feedback.textContent = `Incorrect. The correct answer was: ${correctAnswer}`;
+                feedback.classList.remove('text-green-600');
+                feedback.classList.add('text-red-600');
+            }
+            nextQuestionBtn.disabled = false; // Enable next button
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < quizQuestions.length) {
+                displayQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function showResults() {
+            quizContainer.classList.add('hidden');
+            quizResults.classList.remove('hidden');
+            scoreDisplay.textContent = score;
+            totalQuestionsDisplay.textContent = quizQuestions.length;
+        }
+
+        // Event Listeners for Quiz Buttons
+        nextQuestionBtn.addEventListener('click', nextQuestion);
+        restartQuizBtn.addEventListener('click', startQuiz); // For in-quiz restart (currently hidden, but good to have)
+        restartQuizBtnEnd.addEventListener('click', startQuiz);
+
+        // Initial call to start the quiz when the quiz section is first shown
+        // This will happen when the 'Take the Quiz!' button is clicked for the first time.
     </script>
 </body>
 </html>
