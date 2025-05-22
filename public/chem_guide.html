@@ -863,7 +863,7 @@
                 
                 <div id="quizContainer" class="p-6 border border-stone-200 rounded-lg shadow-md">
                     <div id="questionDisplay" class="text-xl font-semibold text-stone-800 mb-4"></div>
-                    <div id="optionsContainer" class="space-y-2 mb-4">
+                    <div id="optionsContainer" class="flex flex-col space-y-2 mb-4">
                         </div>
                     <div id="feedback" class="text-lg font-medium mb-4"></div>
                     <button id="nextQuestionBtn" class="bg-teal-600 text-white px-6 py-3 rounded-lg shadow-md hover:bg-teal-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed">Next Question</button>
@@ -1281,7 +1281,6 @@
                     radio.dataset.option = option; // Also store in dataset for easy access
 
                     const optionTextSpan = document.createElement('span');
-                    // Removed the 'optionLabels[index].' prefix
                     optionTextSpan.innerHTML = option; // Display only the option text
 
                     label.appendChild(radio);
